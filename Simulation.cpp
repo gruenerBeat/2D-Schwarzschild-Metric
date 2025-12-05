@@ -11,13 +11,21 @@
 
 #define SCALE 5
 
+constexpr double startTheta = M_PI_4;
+constexpr double startR = 50;
+
+
+struct vec2 {
+  double x;
+  double y;  
+};
 
 struct Basis {
   double rX;
   double rY;
   double tX;
   double tY;
-}
+};
 
 double getAngle(double x, double y) {
   if(x == 0 && -y > 0) {
@@ -35,13 +43,20 @@ double getAngle(double x, double y) {
   }
 }
 
-double getPolarBasis(double r, double theta) {
+Basis getPolarBasis(double r, double theta) {
   Basis basis;
   basis.rX = std::cos(theta);
   basis.rY = std::sin(theta);
-  basis.tX = r * r * std::cos(theta + M_PI_2);
-  basis.tY = r * r * std::sin(theta + M_PI_2);
+  basis.tX = r * r * std::cos(M_PI - (theta + M_PI_2));
+  basis.tY = r * r * std::sin(M_PI - (theta + M_PI_2));
   return basis;
+}
+
+vec2 TransformScreenCoords(double x, double y) {
+  vec2 vector;
+  vector.x = ((SCREEN_WIDTH / 2) - x) / SCALE;
+  vector.y = ((SCREEN_HEIGHT / 2) - y) / SCALE;
+  return vector;
 }
 
 int main(){
@@ -65,16 +80,27 @@ int main(){
   //Draw Coordinate Grid
   for(int x = 0; x < SCREEN_WIDTH; x++) {
     for(int y = 0; y < SCREEN_HEIGHT; y++) {
-      int xPos = (SCREEN_WIDTH / 2) - x;
-      int yPos = (SCREEN_HEIGHT / 2) - y;
-      double r = std::sqrt(xPos * xPos + yPos * yPos);
-      double theta = getAngle(xPos, yPos);
-      if(std::fmod(r, (10 * SCALE)) >= (10 * SCALE) - 1 || std::fmod(theta, M_PI_4) >= M_PI_4 - (2 / r)) {
+      vec2 pos = TransformScreenCoords(x, y);
+      double r = std::sqrt(pos.x * pos.x + pos.y * pos.y);
+      double theta = getAngle(pos.x, pos.y);
+      if(std::fmod(r, 1) <= 0.9 || std::fmod(theta, M_PI_4) >= M_PI_4 - (2 / r)) {
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         SDL_RenderDrawPoint(renderer, x, y);
       }
     }
   }
+
+  //Draw Basis
+  Basis basis = getPolarBasis(startR, startTheta);
+  vec2 probepoint{-std::ceil(startR * std::cos(startTheta)), std::ceil(startR * std::sin(startTheta))};
+  vec2 rEndpoint{probepoint.x + basis.rX, probepoint.y + basis.rY};
+  vec2 tEndpoint{probepoint.x + basis.tX, probepoint.y + basis.tY};
+  vec2 originOnScreen = TransformScreenCoords(probepoint.x, probepoint.y);
+  vec2 rPointOnScreen = TransformScreenCoords(rEndpoint.x, rEndpoint.y);
+  vec2 tPointOnScreen = TransformScreenCoords(tEndpoint.x, tEndpoint.y);
+  SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255);
+  SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y, rPointOnScreen.x, rPointOnScreen.y);
+  SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y, tPointOnScreen.x, tPointOnScreen.y);
 
   //Do SDL stuff
   SDL_RenderPresent(renderer);
