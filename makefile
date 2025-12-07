@@ -9,11 +9,12 @@ CC=g++
 # SDL options
 CC_SDL=-lSDL2
 
-
 all:Build
 
 Build:
-	$(CC) $(S_FILES) -w $(CC_SDL) -o $(EXEC)
+	g++ -c GeometryHelper.cpp
+	g++ -c ScreenHelper.cpp
+	$(CC) $(S_FILES) -w $(CC_SDL) -o $(EXEC) GeometryHelper.o ScreenHelper.o
 
 build_run:Build
 	$(EXEC)

@@ -5,73 +5,23 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 
-
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-
 #define SCALE 50
 #define THICKNESS 0.98
 
+#include "GeometryHelper.h"
+#include "ScreenHelper.h"
 
 double pointR;
 double pointT;
-
-struct vec2 {
-  double x;
-  double y;  
-};
-
-struct Basis {
-  double rX;
-  double rY;
-  double tX;
-  double tY;
-};
-
-struct TransformingVector {
-  Basis basis;
-  vec2 components;
-};
-
 TransformingVector velocity;
-
 
 constexpr double startTheta = M_PI_4;
 constexpr double startR = 2;
 constexpr double timeSpan = 10;
 constexpr double timeStep = 0.01;
 constexpr vec2 initialVelocity{1, 0};
-
-
-double getAngle(double x, double y) {
-  if(x == 0 && y == 0) {
-    return 0;
-  }
-  return std::atan2(y, -x);
-}
-
-Basis getPolarBasis(double r, double theta) {
-  Basis basis;
-  basis.rX = -std::cos(theta);
-  basis.rY = std::sin(theta);
-  basis.tX = r * std::cos(M_PI - (theta + M_PI_2));
-  basis.tY = r * std::sin(M_PI - (theta + M_PI_2));
-  return basis;
-}
-
-//Transformations between screen and worldspace
-vec2 TransformToScreenCoords(double x, double y) {
-  vec2 vector;
-  vector.x = (SCREEN_WIDTH / 2) - (x * SCALE);
-  vector.y = (SCREEN_HEIGHT / 2) - (y * SCALE);
-  return vector;
-}
-vec2 TransformToSimulationCoords(double x, double y) {
-  vec2 vector;
-  vector.x = ((SCREEN_WIDTH / 2) - x) / SCALE;
-  vector.y = ((SCREEN_HEIGHT / 2) - y) / SCALE;
-  return vector;
-}
 
 vec2* CalcThetaLines() {
   int maxR = std::max(SCREEN_HEIGHT, SCREEN_WIDTH);
@@ -81,11 +31,6 @@ vec2* CalcThetaLines() {
     endpoints[i].y = maxR * std::sin(i * M_PI_4);
   }
   return endpoints;
-}
-
-vec2 CartesianTransformaion(float r, float t) {
-  vec2 coords{r * std::cos(t), r * std::sin(t)};
-  return coords;
 }
 
 int main(){
@@ -140,8 +85,8 @@ int main(){
     //Display Basis
     Basis basis = getPolarBasis(pointR, pointT);
     vec2 probepoint{pointR * -std::cos(pointT), pointR * std::sin(pointT)};
-    vec2 rEndpoint{basis.rX + probepoint.x, basis.rY + probepoint.y};
-    vec2 tEndpoint{basis.tX + probepoint.x, basis.tY + probepoint.y};
+    vec2 rEndpoint{basis.e1.x + probepoint.x, basis.e1.y + probepoint.y};
+    vec2 tEndpoint{basis.e2.x + probepoint.x, basis.e2.y + probepoint.y};
     vec2 probeOnScreen = TransformToScreenCoords(probepoint.x, probepoint.y);
     vec2 rPointOnScreen = TransformToScreenCoords(rEndpoint.x, rEndpoint.y);
     vec2 tPointOnScreen = TransformToScreenCoords(tEndpoint.x, tEndpoint.y);
@@ -159,21 +104,21 @@ int main(){
 
     //Update velocity
     /*Basis newBasis = getPolarBasis(pointR, pointT);
-    vec2 basisRadiusChange{(newBasis.rX - basis.rX) / timeStep, (newBasis.rY - basis.rY) / timeStep};
-    vec2 basisThetaChange{(newBasis.tX - basis.tX) / timeStep, (newBasis.tY - basis.tY) / timeStep};
+    vec2 basisRadiusChange{(newBasis.e1.x - basis.e1.x) / timeStep, (newBasis.e1.y - basis.e1.y) / timeStep};
+    vec2 basisThetaChange{(newBasis.e2.x - basis.e2.x) / timeStep, (newBasis.e2.y - basis.e2.y) / timeStep};
     double rChangeMagnitude = std::sqrt(basisRadiusChange.x * basisRadiusChange.x + basisRadiusChange.y * basisRadiusChange.y);
     double tChangeMagnitude = std::sqrt(basisThetaChange.x * basisThetaChange.x + basisThetaChange.y * basisThetaChange.y);
     velocity.basis = newBasis;
     velocity.components.x *= rChangeMagnitude;
     velocity.components.y *= tChangeMagnitude;*/
 
-    //Display Velocity
-    /*vec2 cartesianVelocity = ToOrthonormalBasis(velocity);
-    vec2 cartesianVelocityOnScreen = TransformToScreenCoords(cartesianVelocity.x, cartesianVelocity.y);
+    //Display velocity
+    /*vec2 cartesianvelocity = ToOrthonormalBasis(velocity);
+    vec2 cartesianvelocityOnScreen = TransformToScreenCoords(cartesianvelocity.x, cartesianvelocity.y);
     SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); //AQUAMRINE
-    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, cartesianVelocityOnScreen.x, cartesianVelocityOnScreen.y);
-    vec2 scaledRadius{basis.rX * velocity.components.x, basis.rY * velocity.components.x};
-    vec2 scaledTheta{basis.tX * velocity.components.y, basis.tY * velocity.components.y};
+    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, cartesianvelocityOnScreen.x, cartesianvelocityOnScreen.y);
+    vec2 scaledRadius{basis.e1.x * velocity.components.x, basis.e1.y * velocity.components.x};
+    vec2 scaledTheta{basis.e2.x * velocity.components.y, basis.e2.y * velocity.components.y};
     vec2 scaledRadiusOnScreen = TransformToScreenCoords(scaledRadius.x, scaledRadius.y);
     vec2 scaledThetaOnScreen = TransformToScreenCoords(scaledTheta.x, scaledTheta.y);
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); //BLUE
