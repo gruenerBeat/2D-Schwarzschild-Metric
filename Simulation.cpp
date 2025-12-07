@@ -18,10 +18,10 @@ double pointT;
 TransformingVector velocity;
 
 constexpr double startTheta = M_PI_4;
-constexpr double startR = 2;
+constexpr double startR = 1;
 constexpr double timeSpan = 10;
 constexpr double timeStep = 0.01;
-constexpr vec2 initialVelocity{1, 0};
+constexpr vec2 initialVelocity{0.5, 0.1};
 
 vec2* CalcThetaLines() {
   int maxR = std::max(SCREEN_HEIGHT, SCREEN_WIDTH);
@@ -64,8 +64,9 @@ int main(){
     for(int x = 0; x < SCREEN_WIDTH; x++) {
       for(int y = 0; y < SCREEN_HEIGHT; y++) {
         vec2 pos = TransformToSimulationCoords(x, y);
-        double r = std::sqrt(pos.x * pos.x + pos.y * pos.y);
-        double theta = getAngle(pos.x, pos.y);
+        vec2 polarPosition = PolarTransformation(pos.x, pos.y);
+        double r = polarPosition.x;
+        double theta = polarPosition.y;
         if(std::fmod(r, 1) >= THICKNESS) {
           SDL_RenderDrawPoint(renderer, x, y);
         }/* else {
@@ -96,34 +97,32 @@ int main(){
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, tPointOnScreen.x, tPointOnScreen.y);
 
     //Update coords
-    vec2 coords = CartesianTransformaion(pointR, pointT);
-    coords.x += velocity.components.x * timeStep;
-    coords.y += velocity.components.y * timeStep;
-    pointR = std::sqrt(coords.x * coords.x + coords.y * coords.y);
-    pointT = getAngle(coords.x, coords.y);
+    TransformingVector cartesianVelocity = PolarToOrthonormalBasis(velocity);
+    vec2 cartesianPosition = CartesianTransformaion(pointR, pointT);
+    cartesianPosition.x += cartesianVelocity.components.x * timeStep;
+    cartesianPosition.y += cartesianVelocity.components.y * timeStep;
+    vec2 newPolar = PolarTransformation(cartesianPosition.x, cartesianPosition.y);
+    pointR = newPolar.x;
+    pointT = newPolar.y;
 
     //Update velocity
-    /*Basis newBasis = getPolarBasis(pointR, pointT);
-    vec2 basisRadiusChange{(newBasis.e1.x - basis.e1.x) / timeStep, (newBasis.e1.y - basis.e1.y) / timeStep};
-    vec2 basisThetaChange{(newBasis.e2.x - basis.e2.x) / timeStep, (newBasis.e2.y - basis.e2.y) / timeStep};
-    double rChangeMagnitude = std::sqrt(basisRadiusChange.x * basisRadiusChange.x + basisRadiusChange.y * basisRadiusChange.y);
-    double tChangeMagnitude = std::sqrt(basisThetaChange.x * basisThetaChange.x + basisThetaChange.y * basisThetaChange.y);
-    velocity.basis = newBasis;
-    velocity.components.x *= rChangeMagnitude;
-    velocity.components.y *= tChangeMagnitude;*/
+    //velocity = UpdateBasis(velocity, pointR, pointT, timeStep);
 
-    //Display velocity
-    /*vec2 cartesianvelocity = ToOrthonormalBasis(velocity);
-    vec2 cartesianvelocityOnScreen = TransformToScreenCoords(cartesianvelocity.x, cartesianvelocity.y);
-    SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); //AQUAMRINE
-    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, cartesianvelocityOnScreen.x, cartesianvelocityOnScreen.y);
-    vec2 scaledRadius{basis.e1.x * velocity.components.x, basis.e1.y * velocity.components.x};
-    vec2 scaledTheta{basis.e2.x * velocity.components.y, basis.e2.y * velocity.components.y};
-    vec2 scaledRadiusOnScreen = TransformToScreenCoords(scaledRadius.x, scaledRadius.y);
-    vec2 scaledThetaOnScreen = TransformToScreenCoords(scaledTheta.x, scaledTheta.y);
+    //Draw velocity
+    vec2 rawCartesianVelocity{cartesianVelocity.components.x, cartesianVelocity.components.y};
+    vec2 velocityRComponent{velocity.basis.e1.x * velocity.components.x, velocity.basis.e1.y * velocity.components.x};
+    vec2 velocityTComponent{velocity.basis.e2.x * velocity.components.y, velocity.basis.e2.y * velocity.components.y};
+    vec2 relativeVelocity = TransformToScreenCoords(rawCartesianVelocity.x, rawCartesianVelocity.y);
+    vec2 absoluteVelocity = TransformToScreenCoords(rawCartesianVelocity.x + probepoint.x, rawCartesianVelocity.y + probepoint.y);
+    vec2 vRComponentScreen = TransformToScreenCoords(velocityRComponent.x + probepoint.x, velocityRComponent.y + probepoint.y);
+    vec2 vTComponentScreen = TransformToScreenCoords(velocityTComponent.x + probepoint.x, velocityTComponent.y + probepoint.y);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); //YELLOW
+    SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y, relativeVelocity.x, relativeVelocity.y);
+    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, absoluteVelocity.x, absoluteVelocity.y);
+    SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); //CYAN
+    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, vRComponentScreen.x, vRComponentScreen.y);
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); //BLUE
-    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, scaledRadiusOnScreen.x, scaledRadiusOnScreen.y);
-    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, scaledThetaOnScreen.x, scaledThetaOnScreen.y);*/
+    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, vTComponentScreen.x, vTComponentScreen.y);
 
     //SDL stuff
     SDL_RenderPresent(renderer);

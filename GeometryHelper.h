@@ -16,9 +16,12 @@ struct TransformingVector {
     vec2 components;
 };
 
-TransformingVector PolarToOrthonormalBasis(TransformingVector v, double r, double theta);
+TransformingVector PolarToOrthonormalBasis(TransformingVector v);
 double getAngle(double x, double y);
 Basis getPolarBasis(double r, double theta);
-vec2 CartesianTransformaion(float r, float t);
+vec2 CartesianTransformaion(double r, double t);
+vec2 PolarTransformation(double x, double y);
+TransformingVector UpdateBasis(TransformingVector v, double t, double r, double time);
+vec2 CalcPolarPositionFormBasis(Basis b);
 
 #endif
