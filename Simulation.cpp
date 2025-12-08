@@ -19,9 +19,9 @@ TransformingVector velocity;
 
 constexpr double startTheta = M_PI_4;
 constexpr double startR = 1;
-constexpr double timeSpan = 10;
-constexpr double timeStep = 0.01;
-constexpr vec2 initialVelocity{0.5, 0.1};
+constexpr double timeSpan = 50;
+constexpr double timeStep = 0.05;
+constexpr vec2 initialVelocity{0.5, 1};
 
 vec2* CalcThetaLines() {
   int maxR = std::max(SCREEN_HEIGHT, SCREEN_WIDTH);
@@ -106,18 +106,17 @@ int main(){
     pointT = newPolar.y;
 
     //Update velocity
-    velocity = UpdateBasis(velocity, pointR, pointT, 1);
+    //velocity = UpdateBasis(velocity, pointR, pointT, 1);
+    velocity.basis = basis;
 
     //Draw velocity
     vec2 rawCartesianVelocity{cartesianVelocity.components.x, cartesianVelocity.components.y};
     vec2 velocityRComponent{velocity.basis.e1.x * velocity.components.x, velocity.basis.e1.y * velocity.components.x};
     vec2 velocityTComponent{velocity.basis.e2.x * velocity.components.y, velocity.basis.e2.y * velocity.components.y};
-    vec2 relativeVelocity = TransformToScreenCoords(rawCartesianVelocity.x, rawCartesianVelocity.y);
     vec2 absoluteVelocity = TransformToScreenCoords(rawCartesianVelocity.x + probepoint.x, rawCartesianVelocity.y + probepoint.y);
     vec2 vRComponentScreen = TransformToScreenCoords(velocityRComponent.x + probepoint.x, velocityRComponent.y + probepoint.y);
     vec2 vTComponentScreen = TransformToScreenCoords(velocityTComponent.x + probepoint.x, velocityTComponent.y + probepoint.y);
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); //YELLOW
-    SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y, relativeVelocity.x, relativeVelocity.y);
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, absoluteVelocity.x, absoluteVelocity.y);
     SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); //CYAN
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, vRComponentScreen.x, vRComponentScreen.y);
