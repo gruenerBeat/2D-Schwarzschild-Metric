@@ -54,16 +54,14 @@ vec2 PolarTransformation(double x, double y) {
 //Funktioniert nicht!
 TransformingVector UpdateBasis(TransformingVector v, double t, double r, double time) {
   Basis newBasis = getPolarBasis(r, t);
-  vec2 changeRadius{(newBasis.e1.x - v.basis.e1.x) / time, (newBasis.e1.y - v.basis.e1.y) / time};
-  vec2 changeTheta{(newBasis.e2.x - v.basis.e2.x) / time, (newBasis.e2.y - v.basis.e2.y) / time};
-  vec2 rComponentChangeVector{r * v.components.y * changeTheta.x, r * v.components.y * changeTheta.y};
-  vec2 firstTComponentChangeVector{v.components.x * changeTheta.x, v.components.x * changeTheta.y};
-  vec2 secondTComponentChangeVector{v.components.y * changeRadius.x, v.components.y * changeRadius.y};
-  vec2 tComponentChangeVector{-(1 / r) * (firstTComponentChangeVector.x +secondTComponentChangeVector.x), -(1 / r) * (firstTComponentChangeVector.y + secondTComponentChangeVector.y)};
-  double rComponentChange = std::sqrt(rComponentChangeVector.x * rComponentChangeVector.x + rComponentChangeVector.y * rComponentChangeVector.y);
-  double tComponentChange = std::sqrt(tComponentChangeVector.x * tComponentChangeVector.x + tComponentChangeVector.y * tComponentChangeVector.y);
-  v.components.x += rComponentChange;
-  v.components.y += tComponentChange;
+  vec2 changeRR{(newBasis.e1.x - v.basis.e1.x) / time, (newBasis.e1.y - v.basis.e1.y) / time};
+  vec2 changeRT{(newBasis.e1.x - v.basis.e2.x) / time, (newBasis.e1.y - v.basis.e2.y) / time};
+  vec2 changeTR{(newBasis.e2.x - v.basis.e1.x) / time, (newBasis.e2.y - v.basis.e1.y) / time};
+  vec2 changeTT{(newBasis.e2.x - v.basis.e2.x) / time, (newBasis.e2.y - v.basis.e2.y) / time};
+  vec2 rChange{r * changeRR.x + t * changeRT.x, r * changeRR.y + t * changeRT.y};
+  vec2 tChange{r * changeTR.x + t * changeTT.x, r * changeTR.y + t * changeTT.y};
+  v.components.x = std::sqrt(rChange.x * rChange.x + rChange.y * rChange.y);
+  v.components.y = std::sqrt(tChange.x * tChange.x + tChange.y * tChange.y);
   v.basis = newBasis;
   return v;
 }

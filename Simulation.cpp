@@ -106,7 +106,7 @@ int main(){
     pointT = newPolar.y;
 
     //Update velocity
-    //velocity = UpdateBasis(velocity, pointR, pointT, timeStep);
+    velocity = UpdateBasis(velocity, pointR, pointT, 1);
 
     //Draw velocity
     vec2 rawCartesianVelocity{cartesianVelocity.components.x, cartesianVelocity.components.y};
