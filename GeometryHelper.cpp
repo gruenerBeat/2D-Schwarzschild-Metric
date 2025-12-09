@@ -50,9 +50,7 @@ vec2 PolarTransformation(double x, double y) {
   return polarCoords;
 }
 
-
-//Funktioniert nicht!
-TransformingVector UpdateBasis(TransformingVector v, double t, double r, double time) {
+TransformingVector UpdateBasis(TransformingVector v, double t, double r) {
   Basis oldBasis = v.basis;
   Basis newBasis = getPolarBasis(r, t);
   vec2 conTraE1{newBasis.e2.y, -newBasis.e1.y};
