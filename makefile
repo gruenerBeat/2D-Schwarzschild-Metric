@@ -14,7 +14,8 @@ all:Build
 Build:
 	g++ -c GeometryHelper.cpp
 	g++ -c ScreenHelper.cpp
-	$(CC) $(S_FILES) -w $(CC_SDL) -o $(EXEC) GeometryHelper.o ScreenHelper.o
+	g++ -c SchwarzschildMetric.cpp
+	$(CC) $(S_FILES) -w $(CC_SDL) -o $(EXEC) GeometryHelper.o ScreenHelper.o SchwarzschildMetric.o
 
 build_run:Build
 	$(EXEC)
