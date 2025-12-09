@@ -53,15 +53,22 @@ vec2 PolarTransformation(double x, double y) {
 
 //Funktioniert nicht!
 TransformingVector UpdateBasis(TransformingVector v, double t, double r, double time) {
+  Basis oldBasis = v.basis;
   Basis newBasis = getPolarBasis(r, t);
-  vec2 changeRR{(newBasis.e1.x - v.basis.e1.x) / time, (newBasis.e1.y - v.basis.e1.y) / time};
-  vec2 changeRT{(newBasis.e1.x - v.basis.e2.x) / time, (newBasis.e1.y - v.basis.e2.y) / time};
-  vec2 changeTR{(newBasis.e2.x - v.basis.e1.x) / time, (newBasis.e2.y - v.basis.e1.y) / time};
-  vec2 changeTT{(newBasis.e2.x - v.basis.e2.x) / time, (newBasis.e2.y - v.basis.e2.y) / time};
-  vec2 rChange{r * changeRR.x + t * changeRT.x, r * changeRR.y + t * changeRT.y};
-  vec2 tChange{r * changeTR.x + t * changeTT.x, r * changeTR.y + t * changeTT.y};
-  v.components.x = std::sqrt(rChange.x * rChange.x + rChange.y * rChange.y);
-  v.components.y = std::sqrt(tChange.x * tChange.x + tChange.y * tChange.y);
+  vec2 conTraE1{newBasis.e2.y, -newBasis.e1.y};
+  vec2 conTraE2{-newBasis.e2.x, newBasis.e1.x};
+  Basis conjugateTranspose{conTraE1, conTraE2};
+  double invDeterminant = 1 / (newBasis.e1.x * newBasis.e2.y - newBasis.e2.x * newBasis.e1.y);
+  Basis inverseBasis{vec2{invDeterminant * conjugateTranspose.e1.x, invDeterminant * conjugateTranspose.e1.y}, vec2{invDeterminant * conjugateTranspose.e2.x, invDeterminant * conjugateTranspose.e2.y}};
+  double t1 = inverseBasis.e1.x * oldBasis.e1.x + inverseBasis.e2.x * oldBasis.e1.y;
+  double t2 = inverseBasis.e1.y * oldBasis.e1.x + inverseBasis.e2.y * oldBasis.e1.y;
+  double t3 = inverseBasis.e1.x * oldBasis.e2.x + inverseBasis.e2.x * oldBasis.e2.y;
+  double t4 = inverseBasis.e1.y * oldBasis.e2.x + inverseBasis.e2.y * oldBasis.e2.y;
+  Basis transformation{vec2{t1, t2}, vec2{t3, t4}};
+  double xOld = v.components.x;
+  double yOld = v.components.y;
+  v.components.x = transformation.e1.x * xOld + transformation.e2.x * yOld;
+  v.components.y = transformation.e1.y * xOld + transformation.e2.y * yOld;
   v.basis = newBasis;
   return v;
 }
