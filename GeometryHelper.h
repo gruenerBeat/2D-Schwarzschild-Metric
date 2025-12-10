@@ -21,7 +21,8 @@ double getAngle(double x, double y);
 Basis getPolarBasis(double r, double theta);
 vec2 CartesianTransformaion(double r, double t);
 vec2 PolarTransformation(double x, double y);
-TransformingVector UpdateBasis(TransformingVector v, double t, double r, double time);
+TransformingVector UpdateBasis(TransformingVector v, double t, double r);
 vec2 CalcPolarPositionFormBasis(Basis b);
+double cot(double x);
 
 #endif

@@ -70,3 +70,7 @@ TransformingVector UpdateBasis(TransformingVector v, double t, double r) {
   v.basis = newBasis;
   return v;
 }
+
+double cot(double x) {
+  return x == 0 ? 100000 : 1 / std::tan(x);
+}
