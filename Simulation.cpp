@@ -24,6 +24,63 @@ constexpr double timeSpan = 10;
 constexpr double timeStep = 0.01;
 constexpr vec2 initialVelocity{0.2, 1};
 
+//Schwarzschild
+constexpr double M = 1;
+constexpr double N = 100;
+constexpr double h = 0.1;
+
+
+struct vec8
+{
+    double y1;
+    double y2;
+    double y3;
+    double y4;
+    double y5;
+    double y6;
+    double y7;
+    double y8;
+};
+
+
+vec8 yStart{2, 0, 0, 0, 0, 0, 0, 1};
+
+
+/*double
+cot(double x)
+{
+    return std::tan(x) != 0 ? 1 / std::tan(x) : 0;
+}*/
+
+
+vec8
+vectorAddition(vec8 a, vec8 b)
+{
+    return vec8{a.y1 + b.y1, a.y2 + b.y2, a.y3 + b.y3, a.y4 + b.y4, a.y5 + b.y5, a.y6 + b.y6, a.y7 + b.y7, a.y8 + b.y8};
+}
+
+
+vec8
+scal(double a, vec8 b)
+{
+    return vec8{a * b.y1, a * b.y2, a * b.y3, a * b.y4, a * b.y5, a * b.y6, a * b.y7, a * b.y8};
+}
+
+
+vec8
+getYPrime(vec8 y)
+{
+    double a = y.y1 - 2 * M;
+    vec8 yPrime{y.y2, -(M * a / (y.y1 * y.y1 * y.y1)) * y.y4 * y.y4 + M / (y.y1 * a) * y.y2 * y.y2 + a * y.y6 * y.y6 + a * std::sin(y.y5) * std::sin(y.y5) * y.y8 * y.y8,
+                y.y4, -2 * M / (a * y.y1) * y.y2 * y.y4,
+                y.y6, -2 / y.y1 * y.y2 * y.y6 + std::sin(y.y5) * std::cos(y.y5) * y.y8 * y.y8,
+                y.y8, -2 / y.y1 * y.y2 * y.y8 - 2 * cot(y.y5) * y.y6 * y.y8};
+    return yPrime;
+}
+
+//
+
+
 vec2* CalcThetaLines() {
   int maxR = std::max(SCREEN_HEIGHT, SCREEN_WIDTH);
   static vec2 endpoints[8];
@@ -56,6 +113,7 @@ int main(){
   velocity.components = initialVelocity;
   pointR = startR;
   pointT = startTheta;
+  vec8 y = yStart;
   for(int t = 0; t <= timeSpan; t += timeStep) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -97,8 +155,15 @@ int main(){
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); //GREEN
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, tPointOnScreen.x, tPointOnScreen.y);
 
+    //Explizites Euler
+    y = vectorAddition(y, scal(timeStep, y));
+
+    //Draw Position
+    pointR = y.y1;
+    pointT = y.y7;
+
     //Update coords
-    TransformingVector cartesianVelocity = PolarToOrthonormalBasis(velocity);
+    /*TransformingVector cartesianVelocity = PolarToOrthonormalBasis(velocity);
     vec2 cartesianPosition = CartesianTransformaion(pointR, pointT);
     cartesianPosition.x += cartesianVelocity.components.x * timeStep;
     cartesianPosition.y += cartesianVelocity.components.y * timeStep;
@@ -108,10 +173,10 @@ int main(){
 
     //Update velocity
     velocity = UpdateBasis(velocity, pointR, pointT);
-    velocity = GetAcceleration(velocity, pointR, pointT);
+    velocity = GetAcceleration(velocity, pointR, pointT);*/
 
     //Draw velocity
-    vec2 rawCartesianVelocity{cartesianVelocity.components.x, cartesianVelocity.components.y};
+    /*vec2 rawCartesianVelocity{cartesianVelocity.components.x, cartesianVelocity.components.y};
     vec2 absoluteVelocity = TransformToScreenCoords(rawCartesianVelocity.x + probepoint.x, rawCartesianVelocity.y + probepoint.y);
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); //YELLOW
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, absoluteVelocity.x, absoluteVelocity.y);
@@ -125,7 +190,7 @@ int main(){
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); //BLUE
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, onScreenCompR.x, onScreenCompR.y);
     SDL_SetRenderDrawColor(renderer, 0, 255, 255, 255); //CYAN
-    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, onScreenCompT.x, onScreenCompT.y);
+    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, onScreenCompT.x, onScreenCompT.y);*/
 
     //SDL stuff
     SDL_RenderPresent(renderer);
