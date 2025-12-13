@@ -50,7 +50,11 @@ int main(){
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
-
+  while (SDL_PollEvent(&event)) {
+	    if (event.type == SDL_QUIT) {
+		t = timeSpan + 1;
+	    }
+	}
 
   velocity.basis = getPolarBasis(startR, startTheta);
   velocity.components = initialVelocity;
