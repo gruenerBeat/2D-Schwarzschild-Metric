@@ -4,6 +4,26 @@
 struct vec2 {
     double x;
     double y;
+
+    vec2 operator+(vec2 a) {
+        return vec2{
+            a.x + x,
+            a.y + y
+        };
+    };
+
+    vec2 operator-(vec2 a) {
+        return vec2{
+            a.x + x,
+            a.y + y
+        };
+    }
+    vec2 operator*(double a) {
+        return vec2{
+            a * x,
+            a * y
+        };
+    };
 };
 
 struct Basis {

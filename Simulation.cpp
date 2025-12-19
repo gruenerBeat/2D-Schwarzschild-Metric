@@ -12,7 +12,6 @@
 
 #include "GeometryHelper.h"
 #include "ScreenHelper.h"
-#include "Metric.h"
 
 double pointR;
 double pointT;
@@ -50,11 +49,7 @@ int main(){
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
-  while (SDL_PollEvent(&event)) {
-	    if (event.type == SDL_QUIT) {
-		t = timeSpan + 1;
-	    }
-	}
+  SDL_Event event;
 
   velocity.basis = getPolarBasis(startR, startTheta);
   velocity.components = initialVelocity;
@@ -63,6 +58,12 @@ int main(){
   for(int t = 0; t <= timeSpan; t += timeStep) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
+    
+    while (SDL_PollEvent(&event)) {
+	    if (event.type == SDL_QUIT) {
+		    t = timeSpan + 1;
+	    }
+	  }
 
     //Draw Coordinate Grid
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //WHITE
@@ -74,10 +75,7 @@ int main(){
         double theta = polarPosition.y;
         if(std::fmod(r, 1) >= THICKNESS) {
           SDL_RenderDrawPoint(renderer, x, y);
-        }/* else {
-          SDL_SetRenderDrawColor(renderer, (theta / (2 * M_PI)) * 255, 0, 0, 255);
-          SDL_RenderDrawPoint(renderer, x, y);
-        }*/
+        }
       }
     }
     vec2 originOnScreen = TransformToScreenCoords(0, 0);
@@ -91,8 +89,8 @@ int main(){
     //Display Basis
     Basis basis = getPolarBasis(pointR, pointT);
     vec2 probepoint{pointR * -std::cos(pointT), pointR * std::sin(pointT)};
-    vec2 rEndpoint{basis.e1.x + probepoint.x, basis.e1.y + probepoint.y};
-    vec2 tEndpoint{basis.e2.x + probepoint.x, basis.e2.y + probepoint.y};
+    vec2 rEndpoint = basis.e1 + probepoint;
+    vec2 tEndpoint = basis.e2 + probepoint;
     vec2 probeOnScreen = TransformToScreenCoords(probepoint.x, probepoint.y);
     vec2 rPointOnScreen = TransformToScreenCoords(rEndpoint.x, rEndpoint.y);
     vec2 tPointOnScreen = TransformToScreenCoords(tEndpoint.x, tEndpoint.y);
@@ -112,7 +110,6 @@ int main(){
 
     //Update velocity
     velocity = UpdateBasis(velocity, pointR, pointT);
-    velocity = GetAcceleration(velocity, pointR, pointT);
 
     //Draw velocity
     vec2 rawCartesianVelocity{cartesianVelocity.components.x, cartesianVelocity.components.y};
@@ -120,8 +117,8 @@ int main(){
     SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); //YELLOW
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, absoluteVelocity.x, absoluteVelocity.y);
     //???
-    vec2 velCompR{velocity.basis.e1.x * velocity.components.x, velocity.basis.e1.y * velocity.components.x};
-    vec2 velCompT{velocity.basis.e2.x * velocity.components.y, velocity.basis.e2.y * velocity.components.y};
+    vec2 velCompR = velocity.basis.e1 * velocity.components.x;
+    vec2 velCompT = velocity.basis.e2 * velocity.components.x;
     vec2 cartCompR = CartesianTransformaion(velCompR.x, velCompR.y);
     vec2 cartCompT = CartesianTransformaion(velCompT.x, velCompT.y);
     vec2 onScreenCompR = TransformToScreenCoords(cartCompR.x + probepoint.x, cartCompR.y + probepoint.y);
