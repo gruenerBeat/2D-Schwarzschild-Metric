@@ -6,6 +6,43 @@ struct vec2 {
     double y;
 };
 
+struct vec8 {
+    double y1;
+    double y2;
+    double y3;
+    double y4;
+    double y5;
+    double y6;
+    double y7;
+    double y8;
+
+    vec8 operator+(vec8 a) {
+      return vec8{
+        a.y1 + y1,
+        a.y2 + y2,
+        a.y3 + y3,
+        a.y4 + y4,
+        a.y5 + y5,
+        a.y6 + y6,
+        a.y7 + y7,
+        a.y8 + y8
+      };
+    }
+
+    vec8 operator*(double a) {
+      return vec8{
+        a * y1,
+        a * y2,
+        a * y3,
+        a * y4,
+        a * y5,
+        a * y6,
+        a * y7,
+        a * y8
+      };
+    }
+};
+
 struct Basis {
     vec2 e1;
     vec2 e2;
@@ -24,5 +61,6 @@ vec2 PolarTransformation(double x, double y);
 TransformingVector UpdateBasis(TransformingVector v, double t, double r);
 vec2 CalcPolarPositionFormBasis(Basis b);
 double cot(double x);
+vec8 explicitEuler(vec8 y, double h);
 
 #endif

@@ -4,6 +4,7 @@
 
 #define _USE_MATH_DEFINES
 #include <cmath>
+#include "Metric.h"
 
 double getAngle(double x, double y) {
   if(x == 0 && y == 0) {
@@ -73,4 +74,8 @@ TransformingVector UpdateBasis(TransformingVector v, double t, double r) {
 
 double cot(double x) {
   return x == 0 ? 100000 : 1 / std::tan(x);
+}
+
+vec8 explicitEuler(vec8 y, double h) {
+  return y + (getYPrime(y) * h);
 }
