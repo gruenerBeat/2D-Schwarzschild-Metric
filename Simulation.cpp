@@ -16,10 +16,10 @@
 
 double pointR = 1;
 double pointT = 0;
-double velR = 0;
+double velR = 0.2;
 double velT = 1;
 
-vec8 y{pointR, velR, 0, 1, M_PI_2, 0, pointT, velT};
+vec8 y{pointR, velR, 0, 0, M_PI_2, 0, pointT, velT};
 
 constexpr double timeSpan = 10;
 constexpr double timeStep = 0.01;
@@ -50,10 +50,17 @@ int main(){
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
+    SDL_Event event;
 
   for(int t = 0; t <= timeSpan; t += timeStep) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
+
+    while (SDL_PollEvent(&event)) {
+	    if (event.type == SDL_QUIT) {
+		    t = timeSpan + 1;
+	    }
+	  }
 
     //Draw Coordinate Grid
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //WHITE
@@ -89,8 +96,8 @@ int main(){
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); //GREEN
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, tPointOnScreen.x, tPointOnScreen.y);
 
-    //Explizites Euler
-    y = explicitEuler(y, timeStep);
+    //Explicit Euler
+    y = y + (getYPrime(y) * timeStep);
 
     //Draw Position
     pointR = y.y1;

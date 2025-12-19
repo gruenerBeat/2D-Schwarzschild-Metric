@@ -61,6 +61,5 @@ vec2 PolarTransformation(double x, double y);
 TransformingVector UpdateBasis(TransformingVector v, double t, double r);
 vec2 CalcPolarPositionFormBasis(Basis b);
 double cot(double x);
-vec8 explicitEuler(vec8 y, double h);
 
 #endif
