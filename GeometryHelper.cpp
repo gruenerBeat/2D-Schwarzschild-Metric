@@ -6,6 +6,11 @@
 #include <cmath>
 #include "Metric.h"
 
+vec3 Normalize(vec3 a) {
+  double magnitude = std::sqrt(a.x * a.x + a.y * a.y + a.z * a.z);
+  return magnitude != 0 ? vec3{a.x / magnitude, a.y  / magnitude, a.z / magnitude} : vec3{0, 0, 0};
+}
+
 double getAngle(double x, double y) {
   if(x == 0 && y == 0) {
     return 0;

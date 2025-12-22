@@ -1,44 +1,21 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <iostream>
-#include <list>
+
+#include "GeometryHelper.h"
+#include "Metric.h"
+#include "RenderingUtils.h"
 
 #define _USE_MATH_DEFINES
 #include <cmath>
 
 #define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
-#define SCALE 50
-#define THICKNESS 0.98
-
-#include "GeometryHelper.h"
-#include "ScreenHelper.h"
-#include "Metric.h"
-
-double pointR = 3;
-double pointT = 1;
-double velR = 0;
-double velT = 1.5;
-
-vec8 y{pointR, velR, 0, 0, M_PI_2, 0, pointT, velT};
-//vec8 y{0, 0, pointR, velR, pointT, velT, 0, 0};
+#define SCREEN_HEIGHT 7200
 
 constexpr double timeSpan = 10;
 constexpr double timeStep = 0.01;
 
-vec2* CalcThetaLines() {
-  int maxR = std::max(SCREEN_HEIGHT, SCREEN_WIDTH);
-  static vec2 endpoints[8];
-  for(int i = 0; i < 8; i++) {
-    endpoints[i].x = maxR * std::cos(i * M_PI_4);
-    endpoints[i].y = maxR * std::sin(i * M_PI_4);
-  }
-  return endpoints;
-}
-
 int main(){
-
   //Setup SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0){
     printf("Couldn't initialize SDL: %s\n", SDL_GetError());
@@ -55,7 +32,28 @@ int main(){
   SDL_RenderClear(renderer);
   SDL_Event event;
 
-  std::list<vec2> trajectory;
+  //Setup initial conditions
+  HitInfo rays[SCREEN_WIDTH][SCREEN_HEIGHT];
+  for(int x = 0; x < SCREEN_WIDTH; x++) {
+    for(int y = 0; y < SCREEN_HEIGHT; y++) {
+        rays[x][y].didHit = false;
+        rays[x][y].Color = Color{0, 0, 0, 0};
+        vec3 direction = Normalize()
+        vec8 state{
+            0, timeStep,
+            0, direction.x,
+            0, direction.y,
+            0, direction.z
+        }
+        rays.state = state;
+    }
+  }
+
+  //Simulate
+  for(int t = 0; t <= timeSpan; t += timeStep) {
+
+  } 
+
   for(int t = 0; t <= timeSpan; t += timeStep) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -64,7 +62,7 @@ int main(){
 	    if (event.type == SDL_QUIT) {
 		    t = timeSpan + 1;
 	    }
-	  }
+	}
 
     //Draw Coordinate Grid
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //WHITE

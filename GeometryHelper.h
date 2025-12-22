@@ -1,9 +1,10 @@
 #ifndef GEOMETRYHELPER_H
 #define GEOMETRYHELPER_H
 
-struct vec2 {
-    double x;
-    double y;
+struct vec3 {
+  double x;
+  double y;
+  double z;
 };
 
 struct vec8 {
@@ -53,6 +54,7 @@ struct TransformingVector {
     vec2 components;
 };
 
+vec3 Normalize(vec3 a);
 TransformingVector PolarToOrthonormalBasis(TransformingVector v);
 double getAngle(double x, double y);
 Basis getPolarBasis(double r, double theta);
