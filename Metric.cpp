@@ -3,8 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-constexpr double M = 2;
-
 #define _USE_MATH_DEFINES
 #include <cmath>
 

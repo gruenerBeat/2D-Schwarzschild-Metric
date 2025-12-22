@@ -2,8 +2,22 @@
 #define GEOMETRYHELPER_H
 
 struct vec2 {
-    double x;
-    double y;
+  double x;
+  double y;
+
+  vec2 operator+(vec2 a) {
+    return vec2{
+      a.x + x,
+      a.y + y
+    };
+  }
+
+  vec2 operator-(vec2 a) {
+    return vec2{
+      -a.x + x,
+      -a.y + y
+    };
+  }
 };
 
 struct vec8 {
