@@ -1,6 +1,8 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
+#include <list>
 
 #define _USE_MATH_DEFINES
 #include <cmath>
@@ -14,12 +16,13 @@
 #include "ScreenHelper.h"
 #include "Metric.h"
 
-double pointR = 1;
-double pointT = 0;
-double velR = 0.2;
-double velT = 1;
+double pointR = 3;
+double pointT = 1;
+double velR = 0;
+double velT = 1.5;
 
 vec8 y{pointR, velR, 0, 0, M_PI_2, 0, pointT, velT};
+//vec8 y{0, 0, pointR, velR, pointT, velT, 0, 0};
 
 constexpr double timeSpan = 10;
 constexpr double timeStep = 0.01;
@@ -50,8 +53,9 @@ int main(){
   SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
   SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
   SDL_RenderClear(renderer);
-    SDL_Event event;
+  SDL_Event event;
 
+  std::list<vec2> trajectory;
   for(int t = 0; t <= timeSpan; t += timeStep) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -99,9 +103,24 @@ int main(){
     //Explicit Euler
     y = y + (getYPrime(y) * timeStep);
 
-    //Draw Position
+    //Polar coords  (r dr t dt t dt p dp)
     pointR = y.y1;
     pointT = y.y7;
+
+    //Cartesian coords  (t dt x dx y dy z dz)
+    //pointR = std::sqrt(y.y3 * y.y3 + y.y5 * y.y5);
+    //pointT = getAngle(y.y3, y.y5);
+
+    //Add point to Trajectory
+    vec2 cartesianPosition = CartesianTransformaion(pointR, pointT);
+    trajectory.push_back(cartesianPosition);
+
+    //Draw Trajectory
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); //BLUE
+    for(vec2 point : trajectory) {
+      vec2 screenPoint = TransformToScreenCoords(point.x, point.y);
+      SDL_RenderDrawPoint(renderer, screenPoint.x, screenPoint.y);
+    }
 
     //SDL stuff
     SDL_RenderPresent(renderer);
