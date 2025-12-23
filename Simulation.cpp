@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <iostream>
@@ -11,26 +12,23 @@
 #define SCREEN_HEIGHT 720
 #define SCALE 50
 #define THICKNESS 0.98
+#define boundary 15
+
+bool text = false;
+bool tp = true;
 
 #include "GeometryHelper.h"
 #include "ScreenHelper.h"
 #include "Metric.h"
 
-//Almost Stable Circular Orbit
-//double pointR = 3;
-//double pointT = 1;
-//double velR = 1.2490181822;
-//double velT = 1;
-
-double pointR = 9;
-double pointT = 9 * (M_PI_4 / 2);
+double pointR = 1.5 * rs;
+double pointT = M_PI_2;
 double velR = -1;
-double velT = 0.05;
+double velT = 1;
 
-vec8 y{pointR, velR, 0, 0.2, M_PI_2, 0, pointT, velT};
-//vec8 y{0, 0, pointR, velR, pointT, velT, 0, 0};
+vec8 y{pointR, velR, 0, 0, M_PI_2, 0, pointT, velT};
 
-constexpr double timeSpan = 10;
+constexpr double timeSpan = 100;
 constexpr double timeStep = 0.01;
 
 constexpr int movementRate = 2;
@@ -61,12 +59,12 @@ int main(){
   bool sPressed = false;
   vec2 windowPos{0, 0};
 
-  //Normalisation
+  //Initial Normalisation
   double velocityMagnitude = std::sqrt(y.y2 * y.y2 + y.y4 * y.y4 + y.y6 * y.y6 + y.y8 * y.y8) != 0 ? std::sqrt(y.y2 * y.y2 + y.y4 * y.y4 + y.y6 * y.y6 + y.y8 * y.y8) : 1;
   y.y2 = (y.y2 / velocityMagnitude) * c;
   y.y4 = (y.y4 / velocityMagnitude) * c; 
   y.y6 = (y.y6 / velocityMagnitude) * c; 
-  y.y8 = (y.y8 / velocityMagnitude) * c; 
+  y.y8 = (y.y8 / velocityMagnitude) * c;
 
   std::list<vec2> trajectory;
   for(int t = 0; t <= timeSpan; t += timeStep) {
@@ -139,8 +137,6 @@ int main(){
           windowPos.x -= movementRate;
         }
 	    }
-
-
     } while(paused);
 
     //Draw Coordinate Grid
@@ -168,6 +164,14 @@ int main(){
       SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y, screenEndPoint.x, screenEndPoint.y);
     }
 
+    //Velocity
+    double vT = y.y4;
+    double vR = y.y2;
+    double vA = y.y8;
+    double vP = y.y6;
+
+    double velocity = std::sqrt(vT * vT + vR * vR + vA * vA + vP * vP);
+
     //Display Basis
     Basis basis = getPolarBasis(pointR, pointT);
     vec2 probepoint{pointR * -std::cos(pointT), pointR * std::sin(pointT)};
@@ -181,16 +185,16 @@ int main(){
     SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); //GREEN
     SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, tPointOnScreen.x, tPointOnScreen.y);
 
-    //Explicit Euler
-    y = y + (getYPrime(y) * timeStep);
+    //RK4
+    vec8 k1 = getYPrime(y);
+    vec8 k2 = getYPrime(y + k1 * (timeStep / 2));
+    vec8 k3 = getYPrime(y + k2 * (timeStep / 2));
+    vec8 k4 = getYPrime(y + k3 * timeStep);
+    y = y + (k1 + (k2 * 2) + (k3 * 2) + k4) * (timeStep / 6);
 
     //Polar coords  (r dr t dt t dt p dp)
     pointR = y.y1;
     pointT = y.y7;
-
-    //Cartesian coords  (t dt x dx y dy z dz)
-    //pointR = std::sqrt(y.y3 * y.y3 + y.y5 * y.y5);
-    //pointT = getAngle(y.y3, y.y5);
 
     //Add point to Trajectory
     vec2 cartesianPosition = CartesianTransformaion(pointR, pointT);
@@ -203,11 +207,51 @@ int main(){
       SDL_RenderDrawPoint(renderer, screenPoint.x, screenPoint.y);
     }
 
+    //Iterative Normalisation
+    double velocityMagnitude = std::sqrt(y.y2 * y.y2 + y.y4 * y.y4 + y.y6 * y.y6 + y.y8 * y.y8) != 0 ? std::sqrt(y.y2 * y.y2 + y.y4 * y.y4 + y.y6 * y.y6 + y.y8 * y.y8) : 1;
+    y.y2 = (y.y2 / velocityMagnitude) * c;
+    y.y4 = (y.y4 / velocityMagnitude) * c; 
+    y.y6 = (y.y6 / velocityMagnitude) * c; 
+    y.y8 = (y.y8 / velocityMagnitude) * c;
+
+    //Teleport
+    if(tp) {
+      vec2 cartPos = CartesianTransformaion(y.y1, y.y7);
+      if(y.y1 <= 1) {
+        t = timeSpan + 1;
+      }
+      if(y.y1 >= boundary) {
+        y.y1 = boundary - 1;
+        y.y7 = PolarTransformation(-cartPos.x, -cartPos.y).y;
+        y.y2 = -y.y2;
+        y.y8 = -y.y8;
+      }
+    }
+
+    //Text
+    if(text) {
+      TTF_Init();
+      TTF_Font* Sans = TTF_OpenFont("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 24);
+      SDL_Color Gray = {255, 255, 255};
+      std::string out = "V-Time: " + std::to_string(y.y4) + " V-Radial: " + std::to_string(y.y2) + " V-Azimuth: " + std::to_string(y.y8) + " V-Polar: " + std::to_string(y.y6) + " V-Total: " + std::to_string(velocity);
+      SDL_Surface* surfaceMessage = TTF_RenderText_Solid(Sans, out.c_str(), Gray); 
+      SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surfaceMessage);
+      SDL_Rect Message_rect;
+      Message_rect.w = 1000;
+      Message_rect.h = 2 * 24;
+      Message_rect.x = SCREEN_WIDTH - Message_rect.w;
+      Message_rect.y = SCREEN_HEIGHT - Message_rect.h;
+      SDL_RenderCopy(renderer, Message, NULL, &Message_rect);
+      SDL_FreeSurface(surfaceMessage);
+      SDL_DestroyTexture(Message);
+      TTF_CloseFont(Sans);
+      TTF_Quit();
+    }
+     
     //SDL stuff
     SDL_RenderPresent(renderer);
     SDL_Delay(1000 * timeStep);
   }
-
 
   //Do SDL stuff
   SDL_RenderPresent(renderer);
@@ -216,4 +260,3 @@ int main(){
   SDL_Quit();
   return EXIT_SUCCESS;
 }
-

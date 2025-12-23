@@ -3,8 +3,8 @@
 
 #include "GeometryHelper.h"
 
-constexpr double M = 1;
-constexpr double c = 1;
+constexpr double M = 4;
+constexpr double c = 2;
 constexpr double G = 1;
 constexpr double rs = (2 * G * M) / (c * c);
 
