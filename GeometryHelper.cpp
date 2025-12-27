@@ -18,14 +18,14 @@ double getAngle(double x, double y) {
   return std::atan2(y, -x);
 }
 
-vec2 CalcPolarPositionFormBasis(Basis b) {
+/*vec2 CalcPolarPositionFormBasis(Basis b) {
   double theta = getAngle(b.e1.x, b.e1.y);
   double r = std::sqrt(b.e2.x * b.e2.x + b.e2.y * b.e2.y);
   vec2 pos{r, theta};
   return pos;
-}
+}*/
 
-TransformingVector PolarToOrthonormalBasis(TransformingVector v) {
+/*TransformingVector PolarToOrthonormalBasis(TransformingVector v) {
   vec2 polarPos = CalcPolarPositionFormBasis(v.basis);
   vec2 ortho1{1, 0};
   vec2 ortho2{0, 2};
@@ -35,28 +35,29 @@ TransformingVector PolarToOrthonormalBasis(TransformingVector v) {
   vec2 components{compX, compY};
   TransformingVector vector{orthoBasis, components};
   return vector;
-}
+}*/
 
-Basis getPolarBasis(double r, double theta) {
+/*Basis getPolarBasis(double r, double theta) {
   Basis basis;
   basis.e1.x = -std::cos(theta);
   basis.e1.y = std::sin(theta);
   basis.e2.x = r * std::cos(M_PI - (theta + M_PI_2));
   basis.e2.y = r * std::sin(M_PI - (theta + M_PI_2));
   return basis;
+}*/
+
+vec3 CartesianTransformaion(vec3 coords) {
+  vec3 cartesianCoords{coords.x * std::cos(coords.z) * std::sin(coords.y), coords.x * std::sin(coords.z) * std::sin(coords.y), coords.x * std::cos(coords.y)};
+  return cartesianCoords;
 }
 
-vec2 CartesianTransformaion(double r, double t) {
-  vec2 coords{r * -std::cos(t), r * std::sin(t)};
-  return coords;
-}
-
-vec2 PolarTransformation(double x, double y) {
-  vec2 polarCoords{std::sqrt(x * x + y * y), getAngle(x, y)};
+vec3 PolarTransformation(vec3 coords) {
+  double r = std::sqrt(coords.x * coords.x + coords.y * coords.y + coords.z * coords.z);
+  vec3 polarCoords{r, getAngle(coords.x, coords.y), std::acos(coords.z / r)};
   return polarCoords;
 }
 
-TransformingVector UpdateBasis(TransformingVector v, double t, double r) {
+/*TransformingVector UpdateBasis(TransformingVector v, double t, double r) {
   Basis oldBasis = v.basis;
   Basis newBasis = getPolarBasis(r, t);
   vec2 conTraE1{newBasis.e2.y, -newBasis.e1.y};
@@ -75,7 +76,7 @@ TransformingVector UpdateBasis(TransformingVector v, double t, double r) {
   v.components.y = transformation.e1.y * xOld + transformation.e2.y * yOld;
   v.basis = newBasis;
   return v;
-}
+}*/
 
 double cot(double x) {
   return x == 0 ? 100000 : 1 / std::tan(x);

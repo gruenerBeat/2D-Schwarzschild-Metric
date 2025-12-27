@@ -5,6 +5,22 @@ struct vec3 {
   double x;
   double y;
   double z;
+
+  vec3 operator+(vec3 a) {
+    return vec3{
+      a.x + x,
+      a.y + y,
+      a.z + z,
+    };
+  }
+
+  vec3 operator*(double a) {
+    return vec3{
+      a * x,
+      a * y,
+      a * z,
+    };
+  }
 };
 
 struct vec8 {
@@ -44,24 +60,14 @@ struct vec8 {
     }
 };
 
-struct Basis {
-    vec2 e1;
-    vec2 e2;
-};
-
-struct TransformingVector {
-    Basis basis;
-    vec2 components;
-};
-
 vec3 Normalize(vec3 a);
-TransformingVector PolarToOrthonormalBasis(TransformingVector v);
+//TransformingVector PolarToOrthonormalBasis(TransformingVector v);
 double getAngle(double x, double y);
-Basis getPolarBasis(double r, double theta);
-vec2 CartesianTransformaion(double r, double t);
-vec2 PolarTransformation(double x, double y);
-TransformingVector UpdateBasis(TransformingVector v, double t, double r);
-vec2 CalcPolarPositionFormBasis(Basis b);
+//Basis getPolarBasis(double r, double theta);
+vec3 CartesianTransformaion(vec3 coords);
+vec3 PolarTransformation(vec3 coords);
+//TransformingVector UpdateBasis(TransformingVector v, double t, double r);
+//vec3 CalcPolarPositionFormBasis(Basis b);
 double cot(double x);
 
 #endif

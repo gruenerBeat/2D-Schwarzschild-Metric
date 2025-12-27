@@ -1,6 +1,7 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <iostream>
 
 #include "GeometryHelper.h"
 #include "Metric.h"
@@ -10,13 +11,22 @@
 #include <cmath>
 
 #define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 7200
+#define SCREEN_HEIGHT 720
 
 constexpr double timeSpan = 10;
-constexpr double timeStep = 0.01;
+constexpr double timeStep = 0.1;
 
-int main(){
+constexpr vec3 camPolarPos{2, M_PI_2, 0};
+constexpr vec3 camPolarDirection{-1, 0, 0};
+
+constexpr int sphereCount = 1;
+Sphere blackHole = Sphere{vec3{0, 0, 0}, 1, Color{255, 0, 255, 255}};
+Sphere spheres[1] = {blackHole};
+
+int main() {
+
   //Setup SDL
+  std::cout << "Setup SDL";
   if (SDL_Init(SDL_INIT_VIDEO) < 0){
     printf("Couldn't initialize SDL: %s\n", SDL_GetError());
     return EXIT_FAILURE;
@@ -33,98 +43,102 @@ int main(){
   SDL_Event event;
 
   //Setup initial conditions
-  HitInfo rays[SCREEN_WIDTH][SCREEN_HEIGHT];
+  std::cout << "Setup Initial";
+  static Ray rays[SCREEN_WIDTH][SCREEN_HEIGHT];
   for(int x = 0; x < SCREEN_WIDTH; x++) {
     for(int y = 0; y < SCREEN_HEIGHT; y++) {
-        rays[x][y].didHit = false;
-        rays[x][y].Color = Color{0, 0, 0, 0};
-        vec3 direction = Normalize()
-        vec8 state{
-            0, timeStep,
-            0, direction.x,
-            0, direction.y,
-            0, direction.z
-        }
-        rays.state = state;
+      rays[x][y].didHit = false;
+      rays[x][y].hitColor = Color{0, 0, 0, 0};
+      vec3 normVel = Normalize(camPolarDirection) * c;
+      vec8 startState{
+        camPolarPos.x, normVel.x,
+        0, 0,
+        camPolarPos.y, normVel.y,
+        camPolarPos.z, normVel.z
+      };
+      rays[x][y].state = startState;
     }
   }
 
+  bool notInterrupt = true;
+
   //Simulate
-  for(int t = 0; t <= timeSpan; t += timeStep) {
+  std::cout << "Simulate";
+  for(double t = 0; t <= timeSpan; t += timeStep) {
 
-  } 
-
-  for(int t = 0; t <= timeSpan; t += timeStep) {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-
+    //Interrupt
     while (SDL_PollEvent(&event)) {
 	    if (event.type == SDL_QUIT) {
+        notInterrupt = false;
 		    t = timeSpan + 1;
 	    }
-	}
+	  }
 
-    //Draw Coordinate Grid
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); //WHITE
+    //For every Ray
     for(int x = 0; x < SCREEN_WIDTH; x++) {
       for(int y = 0; y < SCREEN_HEIGHT; y++) {
-        vec2 pos = TransformToSimulationCoords(x, y);
-        vec2 polarPosition = PolarTransformation(pos.x, pos.y);
-        double r = polarPosition.x;
-        double theta = polarPosition.y;
-        if(std::fmod(r, 1) >= THICKNESS) {
+        if(!rays[x][y].didHit) {
+
+          //Hit Check
+          bool hit = false;
+          for(int i = 0; i < sphereCount; i++) {
+            //vec3 sphereRelative = PolarTransformation(CartesianTransformaion(vec3{rays[x][y].state.y1, rays[x][y].state.y5, rays[x][y].state.y7}) + (spheres[i].cartPos * -1));
+            if(rays[x][y].state.y1 <= spheres[i].radius) {
+              hit = true;
+              rays[x][y].hitColor = spheres[i].color;
+            }
+          }
+          if(hit) {
+            rays[x][y].didHit = true;
+            continue;
+          }
+          //Sim Step (RK4)
+          vec8 oldState = rays[x][y].state;
+          vec8 k1 = getYPrime(oldState);
+          vec8 k2 = getYPrime(oldState + (k1 * (timeStep / 2)));
+          vec8 k3 = getYPrime(oldState + (k2 * (timeStep / 2)));
+          vec8 k4 = getYPrime(oldState + (k3 * timeStep));
+          vec8 newState = oldState + ((k1 + (k2 * 2) + (k3 * 2) + k4) * timeStep * (1 / 6));
+          rays[x][y].state = newState;
+
+          //Normalisation
+          double magnitude = std::sqrt(newState.y2 * newState.y2 + newState.y4 * newState.y4 + newState.y6 * newState.y6 + newState.y8 * newState.y8);
+          rays[x][y].state.y2 = (newState.y2 / magnitude) * c;
+          rays[x][y].state.y4 = (newState.y4 / magnitude) * c;
+          rays[x][y].state.y6 = (newState.y6 / magnitude) * c;
+          rays[x][y].state.y8 = (newState.y8 / magnitude) * c;
+
+          //No Hit
+          Color color = Color{0, 0, 0, 0};
+          SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+          SDL_RenderDrawPoint(renderer, x, y);
+
+        } else {
+
+          //Draw
+          Color color = rays[x][y].hitColor;
+          SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
           SDL_RenderDrawPoint(renderer, x, y);
         }
       }
     }
-    vec2 originOnScreen = TransformToScreenCoords(0, 0);
-    int maxR = std::max(SCREEN_HEIGHT, SCREEN_WIDTH);
-    for(int i = 0; i < 8; i++) {
-      int size = std::max(SCREEN_WIDTH, SCREEN_HEIGHT) / 50;
-      vec2 screenEndPoint = TransformToScreenCoords(size * std::cos(i * M_PI_4), size * std::sin(i * M_PI_4));
-      SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y, screenEndPoint.x, screenEndPoint.y);
-    }
 
-    //Display Basis
-    Basis basis = getPolarBasis(pointR, pointT);
-    vec2 probepoint{pointR * -std::cos(pointT), pointR * std::sin(pointT)};
-    vec2 rEndpoint{basis.e1.x + probepoint.x, basis.e1.y + probepoint.y};
-    vec2 tEndpoint{basis.e2.x + probepoint.x, basis.e2.y + probepoint.y};
-    vec2 probeOnScreen = TransformToScreenCoords(probepoint.x, probepoint.y);
-    vec2 rPointOnScreen = TransformToScreenCoords(rEndpoint.x, rEndpoint.y);
-    vec2 tPointOnScreen = TransformToScreenCoords(tEndpoint.x, tEndpoint.y);
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255); //RED
-    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, rPointOnScreen.x, rPointOnScreen.y);
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); //GREEN
-    SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y, tPointOnScreen.x, tPointOnScreen.y);
+    std::cout << t * (1 / timeStep) << " / " << timeSpan * (1 / timeStep) << "\n";
 
-    //Explicit Euler
-    y = y + (getYPrime(y) * timeStep);
-
-    //Polar coords  (r dr t dt t dt p dp)
-    pointR = y.y1;
-    pointT = y.y7;
-
-    //Cartesian coords  (t dt x dx y dy z dz)
-    //pointR = std::sqrt(y.y3 * y.y3 + y.y5 * y.y5);
-    //pointT = getAngle(y.y3, y.y5);
-
-    //Add point to Trajectory
-    vec2 cartesianPosition = CartesianTransformaion(pointR, pointT);
-    trajectory.push_back(cartesianPosition);
-
-    //Draw Trajectory
-    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); //BLUE
-    for(vec2 point : trajectory) {
-      vec2 screenPoint = TransformToScreenCoords(point.x, point.y);
-      SDL_RenderDrawPoint(renderer, screenPoint.x, screenPoint.y);
-    }
-
-    //SDL stuff
+    //Render
     SDL_RenderPresent(renderer);
     SDL_Delay(1000 * timeStep);
-  }
+  } 
 
+  std::cout << "\nDONE!\n\n";
+
+  while(notInterrupt) {
+    while (SDL_PollEvent(&event)) {
+	    if (event.type == SDL_QUIT) {
+        notInterrupt = false;
+	    }
+	  }
+  }
 
   //Do SDL stuff
   SDL_RenderPresent(renderer);

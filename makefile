@@ -1,24 +1,13 @@
-# Files
-S_FILES=Simulation.cpp
-
-# Output
-EXEC=simul
-
-# Build settings
-CC=g++
-# SDL options
-CC_SDL=-lSDL2
-
 all:Build
 
 Build:
-	g++ -c GeometryHelper.cpp
-	g++ -c ScreenHelper.cpp
-	g++ -c Metric.cpp
-	$(CC) $(S_FILES) -w $(CC_SDL) -o $(EXEC) GeometryHelper.o ScreenHelper.o Metric.o
+	g++ -g -c GeometryHelper.cpp
+	g++ -g -c RenderingUtils.cpp
+	g++ -g -c Metric.cpp
+	g++ -g Renderer.cpp -w -lSDL2 -o Renderer GeometryHelper.o RenderingUtils.o Metric.o
 
 build_run:Build
-	$(EXEC)
+	Renderer
 
 clean:
-	rm -rf simul
+	rm -rf Renderer

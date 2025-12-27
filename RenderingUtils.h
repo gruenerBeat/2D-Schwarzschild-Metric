@@ -1,22 +1,28 @@
 #ifndef RENDERINGUTILS_H
 #define RENDERINGUTILS_H
 
-#include "GeometryHelpler.h"
+#include "GeometryHelper.h"
 
 struct Color {
     double r;
     double g;
     double b;
     double a;
-}
+};
 
-struct HitInfo {
+struct Ray {
     bool didHit;
     double hitDst;
     Color hitColor;
     vec8 state;
 };
 
-vec3 ToClipPlane(vec3 screenPoint, int screenWidth, int screenWHeight, double vfov);
+struct Sphere {
+    vec3 cartPos;
+    double radius;
+    Color color;
+};
+
+vec3 ToClipPlane(vec3 screenPoint, int screenWidth, int screenHeight, double vfov);
 
 #endif
