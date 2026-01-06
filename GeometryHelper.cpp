@@ -18,34 +18,6 @@ double getAngle(double x, double y) {
   return std::atan2(y, -x);
 }
 
-/*vec2 CalcPolarPositionFormBasis(Basis b) {
-  double theta = getAngle(b.e1.x, b.e1.y);
-  double r = std::sqrt(b.e2.x * b.e2.x + b.e2.y * b.e2.y);
-  vec2 pos{r, theta};
-  return pos;
-}*/
-
-/*TransformingVector PolarToOrthonormalBasis(TransformingVector v) {
-  vec2 polarPos = CalcPolarPositionFormBasis(v.basis);
-  vec2 ortho1{1, 0};
-  vec2 ortho2{0, 2};
-  Basis orthoBasis{ortho1, ortho2};
-  double compX = v.components.x * -std::cos(polarPos.y) + v.components.y * polarPos.x * std::sin(polarPos.y);
-  double compY = v.components.x * std::sin(polarPos.y) + v.components.y * polarPos.x * std::cos(polarPos.y);
-  vec2 components{compX, compY};
-  TransformingVector vector{orthoBasis, components};
-  return vector;
-}*/
-
-/*Basis getPolarBasis(double r, double theta) {
-  Basis basis;
-  basis.e1.x = -std::cos(theta);
-  basis.e1.y = std::sin(theta);
-  basis.e2.x = r * std::cos(M_PI - (theta + M_PI_2));
-  basis.e2.y = r * std::sin(M_PI - (theta + M_PI_2));
-  return basis;
-}*/
-
 vec3 CartesianTransformaion(vec3 coords) {
   vec3 cartesianCoords{coords.x * std::cos(coords.z) * std::sin(coords.y), coords.x * std::sin(coords.z) * std::sin(coords.y), coords.x * std::cos(coords.y)};
   return cartesianCoords;
@@ -53,31 +25,50 @@ vec3 CartesianTransformaion(vec3 coords) {
 
 vec3 PolarTransformation(vec3 coords) {
   double r = std::sqrt(coords.x * coords.x + coords.y * coords.y + coords.z * coords.z);
-  vec3 polarCoords{r, getAngle(coords.x, coords.y), std::acos(coords.z / r)};
+  vec3 polarCoords{r, std::acos(coords.y / r), getAngle(coords.x, coords.z)};
   return polarCoords;
 }
 
-/*TransformingVector UpdateBasis(TransformingVector v, double t, double r) {
-  Basis oldBasis = v.basis;
-  Basis newBasis = getPolarBasis(r, t);
-  vec2 conTraE1{newBasis.e2.y, -newBasis.e1.y};
-  vec2 conTraE2{-newBasis.e2.x, newBasis.e1.x};
-  Basis conjugateTranspose{conTraE1, conTraE2};
-  double invDeterminant = 1 / (newBasis.e1.x * newBasis.e2.y - newBasis.e2.x * newBasis.e1.y);
-  Basis inverseBasis{vec2{invDeterminant * conjugateTranspose.e1.x, invDeterminant * conjugateTranspose.e1.y}, vec2{invDeterminant * conjugateTranspose.e2.x, invDeterminant * conjugateTranspose.e2.y}};
-  double t1 = inverseBasis.e1.x * oldBasis.e1.x + inverseBasis.e2.x * oldBasis.e1.y;
-  double t2 = inverseBasis.e1.y * oldBasis.e1.x + inverseBasis.e2.y * oldBasis.e1.y;
-  double t3 = inverseBasis.e1.x * oldBasis.e2.x + inverseBasis.e2.x * oldBasis.e2.y;
-  double t4 = inverseBasis.e1.y * oldBasis.e2.x + inverseBasis.e2.y * oldBasis.e2.y;
-  Basis transformation{vec2{t1, t2}, vec2{t3, t4}};
-  double xOld = v.components.x;
-  double yOld = v.components.y;
-  v.components.x = transformation.e1.x * xOld + transformation.e2.x * yOld;
-  v.components.y = transformation.e1.y * xOld + transformation.e2.y * yOld;
-  v.basis = newBasis;
-  return v;
-}*/
+vec3 Cross(vec3 a, vec3 b) {
+  return vec3{
+    a.y * b.z - a.z * b.y,
+    a.z * b.x - a.x * b.z,
+    a.x * b.y - a.y * b.x
+  };
+}
+
+double Dot(vec3 a, vec3 b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z;
+}
 
 double cot(double x) {
   return x == 0 ? 100000 : 1 / std::tan(x);
+}
+
+vec4 ToVec4(vec3 a, double b) {
+  return vec4{
+    a.x,
+    a.y,
+    a.z,
+    b
+  };
+}
+
+vec3 ToVec3(vec4 a) {
+  return vec3{
+    a.x,
+    a.y,
+    a.z
+  };
+}
+
+vec3 PolarTransformationAt(vec3 polarCoords, vec3 vector) {
+  double r = polarCoords.x;
+  double t = polarCoords.y;
+  double p = polarCoords.z;
+  return vec3{
+    vector.x * std::sin(t) * std::cos(p) + vector.z * std::sin(t) * std::sin(p) + vector.y * std::cos(t),
+    (vector.x * std::cos(t) * std::cos(p) + vector.z * std::cos(t) * std::sin(p) + vector.y * std::sin(t)) / r,
+    -(vector.x * std::sin(p) - vector.z * std::cos(p)) / r
+  };
 }

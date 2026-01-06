@@ -12,7 +12,7 @@ struct Color {
 
 struct Ray {
     bool didHit;
-    double hitDst;
+    bool hitDst;
     Color hitColor;
     vec8 state;
 };
@@ -23,6 +23,6 @@ struct Sphere {
     Color color;
 };
 
-vec3 ToClipPlane(vec3 screenPoint, int screenWidth, int screenHeight, double vfov);
+vec3 ToNDC(int x, int y, int width, int height);
 
 #endif

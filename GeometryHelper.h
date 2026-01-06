@@ -10,7 +10,7 @@ struct vec3 {
     return vec3{
       a.x + x,
       a.y + y,
-      a.z + z,
+      a.z + z
     };
   }
 
@@ -18,7 +18,40 @@ struct vec3 {
     return vec3{
       a * x,
       a * y,
+      a * z
+    };
+  }
+
+  vec3 operator-(vec3 a) {
+    return vec3{
+      x - a.x,
+      y - a.y,
+      z - a.z
+    };
+  }
+};
+
+struct vec4 {
+  double x;
+  double y;
+  double z;
+  double w;
+
+  vec4 operator+(vec4 a) {
+    return vec4{
+      a.x + x,
+      a.y + y,
+      a.z + z,
+      a.w + w
+    };
+  }
+
+  vec4 operator*(double a) {
+    return vec4{
+      a * x,
+      a * y,
       a * z,
+      a * w
     };
   }
 };
@@ -60,14 +93,29 @@ struct vec8 {
     }
 };
 
+struct Matrix3x3 {
+  vec3 Col1;
+  vec3 Col2;
+  vec3 Col3;
+
+  vec3 operator*(vec3 a) {
+    return vec3{
+      Col1.x * a.x + Col2.x * a.y + Col3.x * a.z,
+      Col1.y * a.x + Col2.y * a.y + Col3.y * a.z,
+      Col1.z * a.x + Col2.z * a.y + Col3.z * a.z
+    };
+  }
+};
+
 vec3 Normalize(vec3 a);
-//TransformingVector PolarToOrthonormalBasis(TransformingVector v);
 double getAngle(double x, double y);
-//Basis getPolarBasis(double r, double theta);
 vec3 CartesianTransformaion(vec3 coords);
 vec3 PolarTransformation(vec3 coords);
-//TransformingVector UpdateBasis(TransformingVector v, double t, double r);
-//vec3 CalcPolarPositionFormBasis(Basis b);
+vec3 Cross(vec3 a, vec3 b);
+double Dot(vec3 a, vec3 b);
+vec4 ToVec4(vec3 a, double b);
+vec3 ToVec3(vec4 a);
 double cot(double x);
+vec3 PolarTransformationAt(vec3 polarCoords, vec3 vector);
 
 #endif
