@@ -26,13 +26,15 @@ constexpr double timeStep = 0.1;
 //z -> viewing direction
 //x -> right
 
-vec3 camCartesianWorldPos{5, 5, -5};
-vec3 camCartesianWorldDirection{1, 1, -1};
-constexpr double hfov = M_PI_2;
+vec3 camCartesianWorldPos{3, 0, 0};
+vec3 camCartesianWorldDirection{-1, 0, 0};
+constexpr double f = 22;
 
-constexpr int sphereCount = 1;
-Sphere blackHole = Sphere{vec3{0, 0, 0}, 1, Color{255, 0, 255, 255}};
-Sphere spheres[sphereCount] = {blackHole};
+Sphere spheres[] = {
+  Sphere{vec3{-10, 5, 5}, 10, Color{255, 127, 0, 255}},
+  Sphere{vec3{0, 0, 0}, 2, Color{255, 0, 255, 255}}
+};
+int sphereCount = sizeof(spheres) / sizeof(spheres[0]);
 
 int main() {
 
@@ -59,30 +61,31 @@ int main() {
     for(int y = 0; y < SCREEN_HEIGHT; y++) {
       rays[x][y].didHit = false;
       rays[x][y].hitColor = Color{0, 0, 0, 0};
-      rays[x][y].hitDst = 100000000;
+      rays[x][y].hitDst = 1000;
 
       //Calculate Ray Direction from Pixel
-      vec3 pixelInNDC = ToNDC(x, y, SCREEN_WIDTH, SCREEN_HEIGHT);
-      double f = 1 / (std::tan(hfov/ 2));
-      vec3 pointInCamSpace = vec3{pixelInNDC.x, pixelInNDC.z, f};
-      vec3 pointInSemiWorldSpace = pointInCamSpace + camCartesianWorldPos;
-      vec3 camBasisZInWorld = Normalize(camCartesianWorldDirection * -1);
-      vec3 camBasisXInWorld = Normalize(Cross(camBasisZInWorld, vec3{0, 1, 0}));
-      vec3 camBasisYInWorld = Normalize(Cross(camBasisXInWorld, camBasisZInWorld));
-      Matrix3x3 camToWorldMatrix = Matrix3x3{camBasisXInWorld, camBasisYInWorld, camBasisZInWorld};
-      vec3 pointInWorldSpace = camToWorldMatrix * pointInSemiWorldSpace;
-      vec3 rayDirection = Normalize(pointInCamSpace);
+      Matrix3x3 InverseIntrinsicMatrix = !Matrix3x3{vec3{f, 0, 0}, vec3{0, f, 0}, vec3{SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1}};
+      vec3 screenCoords = vec3{x, y, 1};
+      vec3 pointInCamSpace = InverseIntrinsicMatrix * screenCoords;
+      vec3 rightVector = Normalize(Cross(vec3{0, 1, 0}, camCartesianWorldDirection));
+      Matrix3x3 RotationMatrix = ~Matrix3x3{
+        rightVector,
+        Normalize(Cross(camCartesianWorldDirection, rightVector)),
+        Normalize(camCartesianWorldDirection)
+      };
+      vec3 pointInWorldSpace = !RotationMatrix * (pointInCamSpace - camCartesianWorldPos);
+      vec3 rayDirection = Normalize(pointInWorldSpace - camCartesianWorldPos);
 
-      std::cout << rayDirection.x << " " << rayDirection.y << " " << rayDirection.z << "\n";
- 
+      //Check for Collision
       for(int i = 0; i < sphereCount; i++) {
+        spheres[i].cartPos = vec3{-spheres[i].cartPos.x, spheres[i].cartPos.y, spheres[i].cartPos.z};
         double dst;
 
-        vec3 relativeRayPos = camCartesianWorldPos * -1 - spheres[i].cartPos;
+        vec3 relativeRayPos = camCartesianWorldPos * -1.0 - spheres[i].cartPos;
         double a = Dot(rayDirection, rayDirection);
-        double b = 2 * Dot(rayDirection, relativeRayPos);
+        double b = 2.0 * Dot(rayDirection, relativeRayPos);
         double c = Dot(relativeRayPos, relativeRayPos) - spheres[i].radius * spheres[i].radius;
-        double discriminant = b * b - 4 * a * c;
+        double discriminant = b * b - 4.0 * a * c;
 
         if(discriminant < 0) {
           continue;
@@ -91,14 +94,14 @@ int main() {
         double root = std::sqrt(discriminant);
 
         if(discriminant == 0) {
-          dst = -b / (2 * a);
+          dst = -b / (2.0 * a);
         } else {
-          double dst1 = (-b + root) / (2 * a);
-          double dst2 = (-b - root) / (2 * a);
-          dst = dst1 >= dst2 ? dst2 : dst1;
+          double dst1 = (-b + root) / (2.0 * a);
+          double dst2 = (-b - root) / (2.0 * a);
+          dst = dst1 > dst2 ? dst2 : dst1;
         }
 
-        if(dst <= rays[x][y].hitDst) {
+        if(dst < rays[x][y].hitDst) {
           rays[x][y].didHit = true;
           rays[x][y].hitDst = dst;
           rays[x][y].hitColor = spheres[i].color;

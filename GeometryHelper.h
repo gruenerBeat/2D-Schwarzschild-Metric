@@ -93,16 +93,67 @@ struct vec8 {
     }
 };
 
+
+
 struct Matrix3x3 {
   vec3 Col1;
   vec3 Col2;
   vec3 Col3;
 
+  //Operate on Vector
   vec3 operator*(vec3 a) {
     return vec3{
       Col1.x * a.x + Col2.x * a.y + Col3.x * a.z,
       Col1.y * a.x + Col2.y * a.y + Col3.y * a.z,
       Col1.z * a.x + Col2.z * a.y + Col3.z * a.z
+    };
+  }
+
+  //Scaling
+  Matrix3x3 operator*(double a) {
+    return Matrix3x3{
+      vec3{a * Col1.x, a * Col2.x, a * Col3.x},
+      vec3{a * Col1.y, a * Col2.y, a * Col3.y},
+      vec3{a * Col1.z, a * Col2.z, a * Col3.z}
+    };
+  }
+
+  //Transpose
+  Matrix3x3 operator~() {
+    return Matrix3x3 {
+      vec3{Col1.x, Col1.y, Col1.z},
+      vec3{Col2.x, Col2.y, Col2.z},
+      vec3{Col3.x, Col3.y, Col3.z}
+    };
+  }
+
+  //Inverse
+  Matrix3x3 operator!() {
+    double determinant = Col1.x * (Col2.y * Col3.z - Col3.y * Col2.z) - Col2.x * (Col1.y * Col3.z - Col3.y * Col1.z) + Col3.x * (Col1.y * Col2.z - Col2.y * Col1.z);
+    Matrix3x3 cofactors = Matrix3x3{
+      vec3{(Col2.y * Col3.z - Col2.z * Col3.y), -(Col2.x * Col3.z - Col2.z * Col3.x), (Col2.x * Col3.y - Col2.y * Col3.x)},
+      vec3{-(Col1.y * Col3.z - Col1.z * Col3.y), (Col1.x * Col3.z - Col1.z * Col3.x), -(Col1.x * Col3.y - Col1.y * Col3.x)},
+      vec3{(Col1.y * Col2.z - Col1.z * Col2.y), -(Col1.x * Col2.z - Col1.z * Col2.x), (Col1.x * Col2.y - Col1.y * Col2.x)}
+    };
+    Matrix3x3 adjoint = ~cofactors;
+    return adjoint * (1 / determinant);
+  }
+};
+
+
+
+struct Matrix4x4 {
+  vec4 Col1;
+  vec4 Col2;
+  vec4 Col3;
+  vec4 Col4;
+
+  vec4 operator*(vec4 a) {
+    return vec4{
+      Col1.x * a.x + Col2.x * a.y + Col3.x * a.z + Col4.x * a.w,
+      Col1.y * a.x + Col2.y * a.y + Col3.y * a.z + Col4.y * a.w,
+      Col1.z * a.x + Col2.z * a.y + Col3.z * a.z + Col4.z * a.w,
+      Col1.w * a.x + Col2.w * a.y + Col3.w * a.z + Col4.w * a.w
     };
   }
 };

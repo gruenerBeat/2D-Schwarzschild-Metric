@@ -12,7 +12,7 @@ struct Color {
 
 struct Ray {
     bool didHit;
-    bool hitDst;
+    double hitDst;
     Color hitColor;
     vec8 state;
 };
