@@ -143,17 +143,26 @@ struct Matrix3x3 {
 
 
 struct Matrix4x4 {
-  vec4 Col1;
-  vec4 Col2;
-  vec4 Col3;
-  vec4 Col4;
+  vec4 Row1;
+  vec4 Row2;
+  vec4 Row3;
+  vec4 Row4;
 
   vec4 operator*(vec4 a) {
     return vec4{
-      Col1.x * a.x + Col2.x * a.y + Col3.x * a.z + Col4.x * a.w,
-      Col1.y * a.x + Col2.y * a.y + Col3.y * a.z + Col4.y * a.w,
-      Col1.z * a.x + Col2.z * a.y + Col3.z * a.z + Col4.z * a.w,
-      Col1.w * a.x + Col2.w * a.y + Col3.w * a.z + Col4.w * a.w
+      Row1.x * a.x + Row1.y * a.y + Row1.z * a.z + Row1.w * a.w,
+      Row2.x * a.x + Row2.y * a.y + Row2.z * a.z + Row2.w * a.w,
+      Row3.x * a.x + Row3.y * a.y + Row3.z * a.z + Row3.w * a.w,
+      Row4.x * a.x + Row4.y * a.y + Row4.z * a.z + Row4.w * a.w
+    };
+  }
+
+  Matrix4x4 operator*(double a) {
+    return Matrix4x4{
+      Row1 * a,
+      Row2 * a,
+      Row3 * a,
+      Row4 * a
     };
   }
 };
@@ -164,9 +173,11 @@ vec3 CartesianTransformaion(vec3 coords);
 vec3 PolarTransformation(vec3 coords);
 vec3 Cross(vec3 a, vec3 b);
 double Dot(vec3 a, vec3 b);
+double Dot4(vec4 a, vec4 b);
 vec4 ToVec4(vec3 a, double b);
 vec3 ToVec3(vec4 a);
 double cot(double x);
-vec3 PolarTransformationAt(vec3 polarCoords, vec3 vector);
+vec3 SphericalTransformationAt(vec3 polarCoords, vec3 vector);
+Matrix4x4 Inverse(Matrix4x4 a);
 
 #endif

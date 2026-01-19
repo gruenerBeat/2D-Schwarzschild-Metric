@@ -62,7 +62,7 @@ vec3 ToVec3(vec4 a) {
   };
 }
 
-vec3 PolarTransformationAt(vec3 polarCoords, vec3 vector) {
+vec3 SphericalTransformationAt(vec3 polarCoords, vec3 vector) {
   double r = polarCoords.x;
   double t = polarCoords.y;
   double p = polarCoords.z;
@@ -71,4 +71,60 @@ vec3 PolarTransformationAt(vec3 polarCoords, vec3 vector) {
     (vector.x * std::cos(t) * std::cos(p) + vector.z * std::cos(t) * std::sin(p) + vector.y * std::sin(t)) / r,
     -(vector.x * std::sin(p) - vector.z * std::cos(p)) / r
   };
+}
+
+double Dot4(vec4 a, vec4 b) {
+  return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
+}
+
+Matrix4x4 Inverse(Matrix4x4 a) {
+  double determinant = a.Row1.y * a.Row2.w * a.Row3.z * a.Row4.x
+                    - a.Row1.y * a.Row2.z * a.Row3.w * a.Row4.x
+                    - a.Row1.x * a.Row2.w * a.Row3.z * a.Row4.y
+                    + a.Row1.x * a.Row2.z * a.Row3.w * a.Row4.y
+                    - a.Row1.y * a.Row2.w * a.Row3.x * a.Row4.z
+                    + a.Row1.x * a.Row2.w * a.Row3.y * a.Row4.z
+                    + a.Row1.y * a.Row2.x + a.Row3.w * a.Row4.z
+                    - a.Row1.x * a.Row2.y * a.Row3.w * a.Row4.z
+                    + a.Row1.w * (
+                      a.Row2.z * (a.Row3.y * a.Row4.x - a.Row3.x * a.Row4.y)
+                      + a.Row2.y * (a.Row3.x * a.Row4.z - a.Row3.z * a.Row4.x)
+                      + a.Row2.x * (a.Row3.z * a.Row4.y - a.Row3.y * a.Row4.z)
+                    )
+                    + a.Row1.y * a.Row2.z * a.Row3.x * a.Row4.w
+                    - a.Row1.x * a.Row2.z * a.Row3.y * a.Row4.w
+                    - a.Row1.y * a.Row2.x * a.Row3.z * a.Row4.w
+                    + a.Row1.x * a.Row2.y * a.Row3.z * a.Row4.w
+                    + a.Row1.z * (
+                      a.Row2.w * (a.Row3.x * a.Row4.y - a.Row3.y * a.Row4.x)
+                      + a.Row2.y * (a.Row3.w * a.Row4.x - a.Row3.x * a.Row4.w)
+                      + a.Row2.x * (a.Row3.y * a.Row4.w - a.Row3.w * a.Row4.y)
+                    );
+  Matrix4x4 out{
+    vec4{
+      -a.Row2.w * a.Row3.z * a.Row4.y + a.Row2.z * a.Row3.w * a.Row4.y + a.Row2.w * a.Row3.y * a.Row4.z - a.Row2.y * a.Row3.w * a.Row4.z - a.Row2.z * a.Row3.y * a.Row4.w + a.Row2.y * a.Row3.z * a.Row4.w,
+      a.Row1.w * a.Row3.z * a.Row4.y - a.Row1.z * a.Row3.w * a.Row4.y - a.Row1.w * a.Row3.y * a.Row4.z + a.Row1.y * a.Row3.w * a.Row4.z + a.Row1.z * a.Row3.y * a.Row4.w - a.Row1.y * a.Row3.z * a.Row4.w,
+      -a.Row1.w * a.Row2.z * a.Row4.y + a.Row1.z * a.Row2.w * a.Row4.y + a.Row1.w * a.Row2.y * a.Row4.z - a.Row1.y * a.Row2.w * a.Row4.z - a.Row1.z * a.Row2.y * a.Row4.w + a.Row1.y * a.Row2.z * a.Row4.w,
+      a.Row1.w * a.Row2.z * a.Row3.y - a.Row1.z * a.Row2.w * a.Row3.y - a.Row1.w * a.Row2.y * a.Row3.z + a.Row1.y * a.Row2.w * a.Row3.z + a.Row1.z * a.Row2.y * a.Row3.w - a.Row1.y * a.Row2.z * a.Row3.w
+    },
+    vec4{
+      a.Row2.w * a.Row3.z * a.Row4.x - a.Row2.z * a.Row3.w * a.Row4.x - a.Row2.w * a.Row3.x * a.Row4.z + a.Row2.x * a.Row3.w * a.Row4.z + a.Row2.z * a.Row3.x * a.Row4.w - a.Row2.x * a.Row3.z * a.Row4.w,
+      -a.Row1.w * a.Row3.z * a.Row4.x + a.Row1.z * a.Row3.w * a.Row4.x + a.Row1.w * a.Row3.x * a.Row4.z - a.Row1.x * a.Row3.w * a.Row4.z - a.Row1.z * a.Row3.x * a.Row4.w + a.Row1.x * a.Row3.z * a.Row4.w,
+      a.Row1.w * a.Row2.z * a.Row4.x - a.Row1.z * a.Row2.w * a.Row4.x - a.Row1.w * a.Row2.x * a.Row4.z + a.Row1.x * a.Row2.w * a.Row4.z + a.Row1.z * a.Row2.x * a.Row4.w - a.Row1.x * a.Row2.z * a.Row4.w,
+      -a.Row1.w * a.Row2.z * a.Row3.x + a.Row1.z * a.Row2.w * a.Row3.x + a.Row1.w * a.Row2.x * a.Row3.z - a.Row1.x * a.Row2.w * a.Row3.z - a.Row1.z * a.Row2.x * a.Row3.w + a.Row1.x * a.Row2.z * a.Row3.w
+    },
+    vec4{
+      -a.Row2.w * a.Row3.y * a.Row4.x + a.Row2.y * a.Row3.w * a.Row4.x + a.Row2.w * a.Row3.x * a.Row4.y - a.Row2.x * a.Row3.w * a.Row4.y - a.Row2.y * a.Row3.x * a.Row4.w + a.Row2.x * a.Row3.y * a.Row4.w,
+      a.Row1.w * a.Row3.y * a.Row4.x - a.Row1.y * a.Row3.w * a.Row4.x - a.Row1.w * a.Row3.x * a.Row4.y + a.Row1.x * a.Row3.w * a.Row4.y + a.Row1.y * a.Row3.x * a.Row4.w - a.Row1.x * a.Row3.y * a.Row4.w,
+      -a.Row1.w * a.Row2.y * a.Row4.x + a.Row1.y * a.Row2.w * a.Row4.x + a.Row1.w * a.Row2.x * a.Row4.y - a.Row1.x * a.Row2.w * a.Row4.y - a.Row1.y * a.Row2.x * a.Row4.w + a.Row1.x * a.Row2.y * a.Row4.w,
+      a.Row1.w * a.Row2.y * a.Row3.x - a.Row1.y * a.Row2.w * a.Row3.x - a.Row1.w * a.Row2.x * a.Row3.y + a.Row1.x * a.Row2.w * a.Row3.y + a.Row1.y * a.Row2.x * a.Row3.w - a.Row1.x * a.Row2.y * a.Row3.w
+    },
+    vec4{
+      a.Row2.z * a.Row3.y * a.Row4.x - a.Row2.y * a.Row3.z * a.Row4.x - a.Row2.z * a.Row3.x * a.Row4.y + a.Row2.x * a.Row3.z * a.Row4.y + a.Row2.y * a.Row3.x * a.Row4.z - a.Row2.x * a.Row3.y * a.Row4.z,
+      -a.Row1.z * a.Row3.y * a.Row4.x + a.Row1.y * a.Row3.z * a.Row4.x + a.Row1.z * a.Row3.x * a.Row4.y - a.Row1.x * a.Row3.z * a.Row4.y - a.Row1.y * a.Row3.x * a.Row4.z + a.Row1.x * a.Row3.y * a.Row4.z,
+      a.Row1.z * a.Row2.y * a.Row4.x - a.Row1.y * a.Row2.z * a.Row4.x - a.Row1.z * a.Row2.x * a.Row4.y + a.Row1.x * a.Row2.z * a.Row4.y + a.Row1.y * a.Row2.x * a.Row4.z - a.Row1.x * a.Row2.y * a.Row4.z,
+      -a.Row1.z * a.Row2.y * a.Row3.x + a.Row1.y * a.Row2.z * a.Row3.x + a.Row1.z * a.Row2.x * a.Row3.y - a.Row1.x * a.Row2.z * a.Row3.y - a.Row1.y * a.Row2.x * a.Row3.z + a.Row1.x * a.Row2.y * a.Row3.z
+    }
+  };
+  return out * (1 / determinant);
 }

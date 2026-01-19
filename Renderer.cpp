@@ -13,31 +13,26 @@
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
 
-constexpr double timeSpan = 10;
+#define BOUNDARY 20
+constexpr Color background{0, 0, 0, 0};
+
+constexpr double timeSpan = 1000;
 constexpr double timeStep = 0.1;
 
-//CONVENTION:
-//
-//world:
-//y -> up
-//
-//cam:
-//y -> up
-//z -> viewing direction
-//x -> right
-
-vec3 camCartesianWorldPos{3, 0, 0};
+vec3 camCartesianWorldPos{9, 0, 0};
 vec3 camCartesianWorldDirection{-1, 0, 0};
-constexpr double f = 22;
+constexpr double fov = 60;
+constexpr double pixelSize = 0.05;
 
 Sphere spheres[] = {
-  Sphere{vec3{-10, 5, 5}, 10, Color{255, 127, 0, 255}},
-  Sphere{vec3{0, 0, 0}, 2, Color{255, 0, 255, 255}}
+  Sphere{vec3{-2, 1, 1}, 1, Color{255, 127, 0, 255}},
+  Sphere{vec3{-3, -4, -4}, 1, Color{255, 0, 255, 255}},
 };
 int sphereCount = sizeof(spheres) / sizeof(spheres[0]);
 
 int main() {
-
+  double f = ((SCREEN_HEIGHT * pixelSize) / 2) * cot((M_PI * fov / 180) / 2);
+  std::cout << f << std::endl;
   //Setup SDL
   if (SDL_Init(SDL_INIT_VIDEO) < 0){
     printf("Couldn't initialize SDL: %s\n", SDL_GetError());
@@ -55,99 +50,56 @@ int main() {
   SDL_Event event;
 
   //Setup initial conditions
-  int index = 0;
   static Ray rays[SCREEN_WIDTH][SCREEN_HEIGHT];
   for(int x = 0; x < SCREEN_WIDTH; x++) {
     for(int y = 0; y < SCREEN_HEIGHT; y++) {
       rays[x][y].didHit = false;
-      rays[x][y].hitColor = Color{0, 0, 0, 0};
+      rays[x][y].hitColor = Color{20, 20, 20, 255};
       rays[x][y].hitDst = 1000;
 
       //Calculate Ray Direction from Pixel
-      Matrix3x3 InverseIntrinsicMatrix = !Matrix3x3{vec3{f, 0, 0}, vec3{0, f, 0}, vec3{SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1}};
-      vec3 screenCoords = vec3{x, y, 1};
-      vec3 pointInCamSpace = InverseIntrinsicMatrix * screenCoords;
+      Matrix3x3 IntrinsicMatrix = Matrix3x3{vec3{f, 0, 0}, vec3{0, f, 0}, vec3{SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 1}};
+      vec3 pointInCamSpace = !IntrinsicMatrix * vec3{x, y, 1};
       vec3 rightVector = Normalize(Cross(vec3{0, 1, 0}, camCartesianWorldDirection));
-      Matrix3x3 RotationMatrix = ~Matrix3x3{
-        rightVector,
-        Normalize(Cross(camCartesianWorldDirection, rightVector)),
-        Normalize(camCartesianWorldDirection)
+      Matrix4x4 RotationMatrix = Matrix4x4{
+        ToVec4(rightVector, camCartesianWorldPos.x),
+        ToVec4(Normalize(Cross(rightVector, camCartesianWorldDirection)), camCartesianWorldPos.y),
+        ToVec4(camCartesianWorldDirection, camCartesianWorldPos.z),
+        vec4{0, 0, 0, 1}
       };
-      vec3 pointInWorldSpace = !RotationMatrix * (pointInCamSpace - camCartesianWorldPos);
+      vec3 pointInWorldSpace = ToVec3(Inverse(RotationMatrix) * ToVec4(pointInCamSpace - camCartesianWorldPos, 0));
       vec3 rayDirection = Normalize(pointInWorldSpace - camCartesianWorldPos);
 
-      //Check for Collision
-      for(int i = 0; i < sphereCount; i++) {
-        spheres[i].cartPos = vec3{-spheres[i].cartPos.x, spheres[i].cartPos.y, spheres[i].cartPos.z};
-        double dst;
-
-        vec3 relativeRayPos = camCartesianWorldPos * -1.0 - spheres[i].cartPos;
-        double a = Dot(rayDirection, rayDirection);
-        double b = 2.0 * Dot(rayDirection, relativeRayPos);
-        double c = Dot(relativeRayPos, relativeRayPos) - spheres[i].radius * spheres[i].radius;
-        double discriminant = b * b - 4.0 * a * c;
-
-        if(discriminant < 0) {
-          continue;
-        }
-
-        double root = std::sqrt(discriminant);
-
-        if(discriminant == 0) {
-          dst = -b / (2.0 * a);
-        } else {
-          double dst1 = (-b + root) / (2.0 * a);
-          double dst2 = (-b - root) / (2.0 * a);
-          dst = dst1 > dst2 ? dst2 : dst1;
-        }
-
-        if(dst < rays[x][y].hitDst) {
-          rays[x][y].didHit = true;
-          rays[x][y].hitDst = dst;
-          rays[x][y].hitColor = spheres[i].color;
-        }
-      }
-
-      /*//Transform to Polar Coordinates
-      vec3 polarRayPos = PolarTransformation(camCartesianWorldPos);
-      vec3 polarRayDir = PolarTransformationAt(polarRayPos, rayDirection);
+      //Transform
+      vec3 camPolarPos = PolarTransformation(camCartesianWorldPos);
+      vec3 polarVelocity = SphericalTransformationAt(camPolarPos, rayDirection) * c;
 
       //Apply
       vec8 startingState = vec8{
-        polarRayPos.x, polarRayDir.x,
+        camPolarPos.x, polarVelocity.x,
         0, 0,
-        polarRayPos.y, polarRayDir.y,
-        polarRayPos.z, polarRayDir.z
+        camPolarPos.y, polarVelocity.y,
+        camPolarPos.z, polarVelocity.z
       };
-      rays[x][y].state = startingState;*/
+      rays[x][y].state = startingState;
 
       SDL_SetRenderDrawColor(renderer, rays[x][y].hitColor.r, rays[x][y].hitColor.g, rays[x][y].hitColor.b, rays[x][y].hitColor.a);
       SDL_RenderDrawPoint(renderer, x, y);
-      index++;
     }
   }
 
-  std::cout << "Done";
-
   SDL_RenderPresent(renderer);
-
   bool notInterrupt = true;
-  while(notInterrupt) {
-    while (SDL_PollEvent(&event)) {
-	    if (event.type == SDL_QUIT) {
-        notInterrupt = false;
-	    }
-	  }
-  }
-
-  SDL_DestroyWindow(window);
-  SDL_DestroyRenderer(renderer);
-  SDL_Quit();
-  return EXIT_SUCCESS;
-
+  int hitIndex = 0;
 
   //Simulate
-  /*for(double t = 0; t <= timeSpan; t += timeStep) {
+  for(double t = 0; t <= timeSpan; t += timeStep) {
+
+    std::cout << t << " / " << timeSpan << "\n" << std::endl;
+
+    if(hitIndex >= SCREEN_HEIGHT * SCREEN_WIDTH) {
+      break;
+    }
 
     //Interrupt
     while (SDL_PollEvent(&event)) {
@@ -165,17 +117,24 @@ int main() {
           //Hit Check
           bool hit = false;
           for(int i = 0; i < sphereCount; i++) {
-            //vec3 sphereRelative = PolarTransformation(CartesianTransformaion(vec3{rays[x][y].state.y1, rays[x][y].state.y5, rays[x][y].state.y7}) + (spheres[i].cartPos * -1));
-            //double r = std::sqrt(rays[x][y].state.y1 * rays[x][y].state.y1 + rays[x][y].state.y5 * rays[x][y].state.y5 + rays[x][y].state.y7 * rays[x][y].state.y7);
-            if(rays[x][y].state.y1 <= spheres[i].radius) {
+            vec3 cartPos = CartesianTransformaion(vec3{rays[x][y].state.y1, rays[x][y].state.y5, rays[x][y].state.y7});
+            vec3 relativeToSphere = cartPos - spheres[i].cartPos;
+            double r = std::sqrt(relativeToSphere.x * relativeToSphere.x + relativeToSphere.y * relativeToSphere.y + relativeToSphere.z * relativeToSphere.z);
+            if(r <= spheres[i].radius) {
               hit = true;
               rays[x][y].hitColor = spheres[i].color;
             }
           }
+          if(rays[x][y].state.y1 >= BOUNDARY || rays[x][y].state.y1 <= rs) {
+            hit = true;
+            rays[x][y].hitColor = background;
+          }
           if(hit) {
             rays[x][y].didHit = true;
+            hitIndex++;
             continue;
           }
+
           //Sim Step (RK4)
           vec8 k1 = getYPrime(rays[x][y].state);
           vec8 k2 = getYPrime(rays[x][y].state + k1 * (timeStep / 2));
@@ -191,13 +150,9 @@ int main() {
           rays[x][y].state.y8 = (rays[x][y].state.y8 / magnitude) * c;
 
           //No Hit
-          Color color = Color{0, 0, 0, 0};
+          Color color = Color{20, 20, 20, 255};
           SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
           SDL_RenderDrawPoint(renderer, x, y);
-
-          if(x == SCREEN_WIDTH / 2 && y == SCREEN_HEIGHT / 2) {
-            std::cout << rays[x][y].state.y1 << " " << rays[x][y].state.y5 << " " << rays[x][y].state.y7 << "\n";
-          }
 
         } else {
 
@@ -209,20 +164,25 @@ int main() {
       }
     }
 
-    std::cout << t * (1 / timeStep) << " / " << timeSpan * (1 / timeStep) << "\n";
-
     //Render
     SDL_RenderPresent(renderer);
-    SDL_Delay(1000 * timeStep);
-  }*/
+  }
 
-  
+  bool done = true;
+  while(done) {
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_QUIT) {
+        notInterrupt = false;
+        done = false;
+      }
+    }
+  }
 
   //Do SDL stuff
-  /*SDL_RenderPresent(renderer);
+  SDL_RenderPresent(renderer);
   SDL_DestroyWindow(window);
   SDL_DestroyRenderer(renderer);
   SDL_Quit();
-  return EXIT_SUCCESS;*/
+  return EXIT_SUCCESS;
 }
 
