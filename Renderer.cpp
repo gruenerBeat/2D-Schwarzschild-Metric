@@ -14,19 +14,21 @@
 #define SCREEN_HEIGHT 720
 
 #define BOUNDARY 20
-constexpr Color background{0, 0, 0, 0};
+constexpr Color background{10, 10, 10, 10};
+constexpr Color black_hole{0, 0, 0, 0};
 
 constexpr double timeSpan = 1000;
 constexpr double timeStep = 0.1;
 
-vec3 camCartesianWorldPos{9, 0, 0};
+vec3 camCartesianWorldPos{3, 0, -2};
 vec3 camCartesianWorldDirection{-1, 0, 0};
 constexpr double fov = 60;
 constexpr double pixelSize = 0.05;
 
 Sphere spheres[] = {
-  Sphere{vec3{-2, 1, 1}, 1, Color{255, 127, 0, 255}},
-  Sphere{vec3{-3, -4, -4}, 1, Color{255, 0, 255, 255}},
+  Sphere{vec3{-2, -3, 2}, 1, Color{255, 127, 0, 255}},
+  Sphere{vec3{-1, 4, 0}, 1, Color{255, 0, 255, 255}},
+  Sphere{vec3{-4, -1, -1}, 1, Color{255, 0, 0, 255}},
 };
 int sphereCount = sizeof(spheres) / sizeof(spheres[0]);
 
@@ -68,7 +70,7 @@ int main() {
         vec4{0, 0, 0, 1}
       };
       vec3 pointInWorldSpace = ToVec3(Inverse(RotationMatrix) * ToVec4(pointInCamSpace - camCartesianWorldPos, 0));
-      vec3 rayDirection = Normalize(pointInWorldSpace - camCartesianWorldPos);
+      vec3 rayDirection = Normalize(camCartesianWorldPos - pointInWorldSpace);
 
       //Transform
       vec3 camPolarPos = PolarTransformation(camCartesianWorldPos);
@@ -90,16 +92,9 @@ int main() {
 
   SDL_RenderPresent(renderer);
   bool notInterrupt = true;
-  int hitIndex = 0;
 
   //Simulate
   for(double t = 0; t <= timeSpan; t += timeStep) {
-
-    std::cout << t << " / " << timeSpan << "\n" << std::endl;
-
-    if(hitIndex >= SCREEN_HEIGHT * SCREEN_WIDTH) {
-      break;
-    }
 
     //Interrupt
     while (SDL_PollEvent(&event)) {
@@ -125,13 +120,16 @@ int main() {
               rays[x][y].hitColor = spheres[i].color;
             }
           }
-          if(rays[x][y].state.y1 >= BOUNDARY || rays[x][y].state.y1 <= rs) {
+          if(rays[x][y].state.y1 >= BOUNDARY) {
             hit = true;
             rays[x][y].hitColor = background;
           }
+          if(rays[x][y].state.y1 <= rs) {
+            hit = true;
+            rays[x][y].hitColor = black_hole;
+          }
           if(hit) {
             rays[x][y].didHit = true;
-            hitIndex++;
             continue;
           }
 
@@ -167,6 +165,8 @@ int main() {
     //Render
     SDL_RenderPresent(renderer);
   }
+
+  std::cout << "BReak\n";
 
   bool done = true;
   while(done) {
