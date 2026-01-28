@@ -19,7 +19,8 @@ all: $(target)
 	$(CXX) $(CXXFLAGS) -g -c $<
 
 $(target): $(object)
-	$(CXX) $(LDFLAGS) -o $@ $?
+	echo Hallo
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 .PHONY: build_run
 build_run: $(target)
