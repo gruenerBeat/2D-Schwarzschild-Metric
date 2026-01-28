@@ -1,13 +1,30 @@
-all:Build
+CXX := g++
+CXXFLAGS := -Wno-narrowing
+LDFLAGS :=-w -lSDL2 
 
-Build:
-	g++ -g -c GeometryHelper.cpp
-	g++ -g -c RenderingUtils.cpp
-	g++ -g -c Metric.cpp
-	g++ -g Renderer.cpp -w -lSDL2 -o Renderer GeometryHelper.o RenderingUtils.o Metric.o
+target := Renderer
+source := $(wildcard *.cpp)
+object := $(patsubst %.cpp,%.o,$(source))
 
-build_run:Build
-	Renderer
+$(info $(source))
+$(info $(object))
 
+.PHONY: all
+all: $(target)
+
+%:%.cpp
+%:%.o
+
+%.o: %.cpp
+	$(CXX) $(CXXFLAGS) -g -c $<
+
+$(target): $(object)
+	$(CXX) $(LDFLAGS) -o $@ $?
+
+.PHONY: build_run
+build_run: $(target)
+	$(target)
+
+.PHONY: clean
 clean:
-	rm -rf Renderer
+	rm -rf $(target) $(object)
