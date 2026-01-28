@@ -17,8 +17,8 @@
 constexpr Color background{100, 100, 100, 100};
 constexpr Color black_hole{0, 0, 0, 0};
 
-constexpr double timeSpan = 100;
-constexpr double timeStep = 0.01;
+constexpr double timeSpan = 500;
+constexpr double timeStep = 0.05;
 
 vec3 camCartesianWorldPos{3, 0, -2};
 vec3 camCartesianWorldDirection{-1, 0, 0};
@@ -26,9 +26,11 @@ constexpr double fov = 60;
 constexpr double pixelSize = 0.05;
 
 Sphere spheres[] = {
-    Sphere{vec3{-2, -3, 2}, 1, Color{255, 127, 0, 255}},
-    Sphere{vec3{-1, 4, 0}, 1, Color{255, 0, 255, 255}},
-    Sphere{vec3{-4, -2, -3}, 1, Color{255, 0, 0, 255}},
+    Sphere{vec3{2, -3, 2}, 1, Color{255, 127, 0, 255}},
+    Sphere{vec3{1, 4, 0}, 1, Color{255, 0, 255, 255}},
+    Sphere{vec3{4, -2, -3}, 3, Color{255, 0, 0, 255}},
+    Sphere{vec3{8, 0, 0}, 5, Color{0, 255, 255, 255}},
+    Sphere{vec3{3, 2, 1}, 0.5, Color{255, 255, 255, 255}},
 };
 int sphereCount = sizeof(spheres) / sizeof(spheres[0]);
 
