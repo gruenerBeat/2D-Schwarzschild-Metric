@@ -3,7 +3,9 @@ CXXFLAGS := -Wno-narrowing
 LDFLAGS :=-w -lSDL2 
 
 target := Renderer
+main := Renderer.cpp
 source := $(wildcard *.cpp)
+source := $(filter-out $(main), $(source))
 object := $(patsubst %.cpp,%.o,$(source))
 
 $(info $(source))
@@ -18,9 +20,9 @@ all: $(target)
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -g -c $<
 
-$(target): $(object)
+$(target): $(main) $(object)
 	echo Hallo
-	$(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(main) $(LDFLAGS) -o $@ $(object)
 
 .PHONY: build_run
 build_run: $(target)
