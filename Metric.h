@@ -3,7 +3,7 @@
 
 #include "GeometryHelper.h"
 
-constexpr double M = 4;
+constexpr double M = 2;
 constexpr double c = 2;
 constexpr double G = 1;
 constexpr double rs = (2 * G * M) / (c * c);

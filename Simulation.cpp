@@ -15,29 +15,56 @@
 #define boundary 15
 
 bool text = false;
-bool tp = true;
+bool tp = false;
+bool cordGrid = false;
 
 #include "GeometryHelper.h"
 #include "Metric.h"
 #include "ScreenHelper.h"
 
 vec8 y[] = {
-    {0.9 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {0.95 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {0.98 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {0.99 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.00 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.01 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.02 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.05 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.10 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.15 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.20 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.5 * rs - 1. / 8, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.5 * rs + 1. / 8, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.5 * rs - 1. / 16, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-    {1.5 * rs + 1. / 16, 0, 0, 0, M_PI_2, 0, M_PI_2, 1},
-};
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0025},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.005},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0075},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.01},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0125},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.015},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0175},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.02},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0225},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.025},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0275},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.03},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0325},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.035},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0375},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.04},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0425},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.045},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.0475},
+    {10, -1, 0, 0, M_PI_2, 0, 0, 0.05},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0025},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.005},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0075},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.01},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0125},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.015},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0175},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.02},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0225},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.025},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0275},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.03},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0325},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.035},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0375},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.04},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0425},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.045},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.0475},
+    {10, -1, 0, 0, M_PI_2, 0, 0, -0.05},
+  };
 constexpr int pointSize = sizeof(y) / sizeof(y[0]);
 
 constexpr double timeSpan = 100;
@@ -88,6 +115,11 @@ int main() {
   }
 
   std::list<vec2> trajectory[pointSize];
+  bool sim[pointSize];
+  for(int i = 0; i < pointSize; i++) {
+    sim[i] = true;
+  }
+
   for (int t = 0; t <= timeSpan; t += timeStep) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -168,7 +200,7 @@ int main() {
         vec2 polarPosition = PolarTransformation(pos.x, pos.y);
         double r = polarPosition.x;
         double theta = polarPosition.y;
-        if (std::fmod(r, 1) >= THICKNESS) {
+        if (std::fmod(r, 1) >= THICKNESS && cordGrid) {
           SDL_RenderDrawPoint(renderer, x, y);
         }
         if (r >= rs && r <= rs + THICKNESS / SCALE) {
@@ -177,16 +209,16 @@ int main() {
         }
       }
     }
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // WHITE
-    vec2 originOnScreen = TransformToScreenCoords(0, 0, windowPos);
-    for (int i = 0; i < 8; i++) {
-      int size = 500000;
-      vec2 screenEndPoint = TransformToScreenCoords(
-          size * std::cos(i * M_PI_4), size * std::sin(i * M_PI_4), windowPos);
-      SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y,
-                         screenEndPoint.x, screenEndPoint.y);
+    
+    if(cordGrid) {
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); // WHITE
+      vec2 originOnScreen = TransformToScreenCoords(0, 0, windowPos);
+      for (int i = 0; i < 8; i++) {
+        int size = 500000;
+        vec2 screenEndPoint = TransformToScreenCoords(size * std::cos(i * M_PI_4), size * std::sin(i * M_PI_4), windowPos);
+        SDL_RenderDrawLine(renderer, originOnScreen.x, originOnScreen.y, screenEndPoint.x, screenEndPoint.y);
+      }
     }
-
     for (int i = 0; i < pointSize; i++) {
 
       // Velocity
@@ -200,8 +232,10 @@ int main() {
 
       double velocity = std::sqrt(vT * vT + vR * vR + vA * vA + vP * vP);
 
+      if(pointR <= rs) sim[i] = false;
+
       // Display Basis
-      Basis basis = getPolarBasis(pointR, pointT);
+      /*Basis basis = getPolarBasis(pointR, pointT);
       vec2 probepoint{pointR * -std::cos(pointT), pointR * std::sin(pointT)};
       vec2 rEndpoint{basis.e1.x + probepoint.x, basis.e1.y + probepoint.y};
       vec2 tEndpoint{basis.e2.x + probepoint.x, basis.e2.y + probepoint.y};
@@ -216,19 +250,21 @@ int main() {
                          rPointOnScreen.x, rPointOnScreen.y);
       SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255); // GREEN
       SDL_RenderDrawLine(renderer, probeOnScreen.x, probeOnScreen.y,
-                         tPointOnScreen.x, tPointOnScreen.y);
+                         tPointOnScreen.x, tPointOnScreen.y);*/
 
-      // RK4
-      vec8 k1 = getYPrime(y[i]);
-      vec8 k2 = getYPrime(y[i] + k1 * (timeStep / 2));
-      vec8 k3 = getYPrime(y[i] + k2 * (timeStep / 2));
-      vec8 k4 = getYPrime(y[i] + k3 * timeStep);
-      y[i] = y[i] + (k1 + (k2 * 2) + (k3 * 2) + k4) * (timeStep / 6);
+      if(sim[i]) {
 
-      // Add point to Trajectory
-      vec2 cartesianPosition = CartesianTransformaion(pointR, pointT);
-      trajectory[i].push_back(cartesianPosition);
+        // RK4
+        vec8 k1 = getYPrime(y[i]);
+        vec8 k2 = getYPrime(y[i] + k1 * (timeStep / 2));
+        vec8 k3 = getYPrime(y[i] + k2 * (timeStep / 2));
+        vec8 k4 = getYPrime(y[i] + k3 * timeStep);
+        y[i] = y[i] + (k1 + (k2 * 2) + (k3 * 2) + k4) * (timeStep / 6);
 
+        // Add point to Trajectory
+        vec2 cartesianPosition = CartesianTransformaion(pointR, pointT);
+        trajectory[i].push_back(cartesianPosition);
+      }
       // Draw Trajectory
       SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255); // BLUE
       for (vec2 point : trajectory[i]) {
