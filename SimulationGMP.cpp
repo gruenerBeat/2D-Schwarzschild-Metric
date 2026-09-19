@@ -69,7 +69,7 @@ VectorGMP<8> y[100];
     VectorGMP<8>({10, -1, 0, 0, M_PI_2, 0, 0, -0.045}),
     VectorGMP<8>({10, -1, 0, 0, M_PI_2, 0, 0, -0.0475}),
     VectorGMP<8>({10, -1, 0, 0, M_PI_2, 0, 0, -0.05}),
-VectorGMP<8>({1.5 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1}),
+    VectorGMP<8>({1.5 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1}),
     VectorGMP<8>({1.25 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1}),
     VectorGMP<8>({1.05 * rs, 0, 0, 0, M_PI_2, 0, M_PI_2, 1}),
     VectorGMP<8>({20, -0.1, 0, 0, M_PI_2, 0, 0, 0.9}),
@@ -368,7 +368,7 @@ int main() {
 
       if (sim[i]) {
         VectorGMP<3> y3 = VectorGMP<3>({y[i](0), y[i](1), y[i](7)});
-        y3 = variant2(y3);
+        y3 = variant1(y3);
         y[i](0) = y3(0);
         y[i](1) = y3(1);
         y[i](6) += timeStep * y3(2);
