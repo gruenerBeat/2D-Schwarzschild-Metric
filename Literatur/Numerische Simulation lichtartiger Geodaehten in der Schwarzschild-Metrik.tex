@@ -1,5 +1,8 @@
 \documentclass[18px, A4]{article}
 
+\usepackage{tikz}
+\usepackage{amsmath}
+
 \begin{document}
 \title{Numerische Simulation lichtartiger Geodähten in der Schwarzschild-Metrik}
 \author{Beat Grüner}
@@ -14,17 +17,51 @@
 
 
 \section{Harmonischer Oszillator als motivierendes Beispiel}
+Ein Standardbeispiel für einfache Differentialgleichungen ist der harmonische Oszilator.
+Der Harmonische Oszillator kann durch Pendel oer elektronische Schwingkreise motiviert werden.
+Der ungedämpfte harmonische Oszillator ist die Lösung der DGL
+\[
+    \frac{d^{2}x}{dt^{2}}\ +\ \omega^{2} x\ =\ 0
+\]
 
 \subsection{Umschreiben in ein System erster Ordnung}
+Diese DGL kann in ein System erster Ordnung umgeschrieben werden. Dafür wird der
+Zustand des Systems als Vektor
+\[
+    \vec{y}\ =\ \begin{bmatrix}
+	x  \\
+	x' \\
+    \end{bmatrix}
+\]
+geschrieben. \newline
+Wenn wir nun die DGL wie folgt umstellen:
+\[
+    \frac{d^{2}x}{dt^{2}}\ =\ -\omega^{2} x
+\]
+können wir nun die vektorwertige Funktion
+\[
+    \vec{y}\ '\ =\ f(\vec{y}, t)\ =\ \begin{bmatrix}
+	x' \\
+	-\omega^{2} x
+    \end{bmatrix}
+\]
+definieren, da $x''\ =\ -\omega x$.
 
 \subsection{Exakte Lösung des Problems}
+Die Form der allgemeine Lösung der DGL ist:
+\[
+    x(t)\ =\ \sin \omega t
+\]
+wobei $\omega$ die Kreisfrequenz der Oszillation ist. 
 
 \newpage
 
 
 \section{Numerische Verfahren angewandt auf den harmonischen Oszillator}
+Auf dieses System erster Ordnung können nun verschiedene numerische Verfahren angewandt werden
 
-\subsection{explizites euler-verfahren}
+\subsection{Explizites Euler-verfahren}
+Das explizite Euler-verfahren
 
 \subsection{runge-kutta-verfahren}
 
